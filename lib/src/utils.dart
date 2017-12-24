@@ -106,12 +106,13 @@ num calculateInterval(num range, int targetSteps, [num minInterval]) {
   return msd * magPow;
 }
 
-double calculateMaxTextWidth(
-    CanvasRenderingContext2D context, String font, List<String> texts) {
-  var result = 0.0;
+double calculateMaxTextWidth(CanvasRenderingContext2D context, String font, List<String> texts)
+{
+  double result = 0.0;
   context.font = font;
-  for (var text in texts) {
-    var width = context.measureText(text).width;
+  for (String text in texts)
+  {
+    double width = context.measureText(text).width.toDouble();
     if (result < width) result = width;
   }
   return result;
