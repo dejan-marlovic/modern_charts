@@ -115,6 +115,7 @@ double calculateMaxTextWidth(CanvasRenderingContext2D context, String font, List
     double width = context.measureText(text).width.toDouble();
     if (result < width) result = width;
   }
+  print("result: $result");
   return result;
 }
 
