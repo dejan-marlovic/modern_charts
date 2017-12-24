@@ -1359,7 +1359,7 @@ class _TwoAxisChart extends Chart {
         dx < _xAxisLength) {
       var index = (dx / _xLabelHop - _xLabelOffsetFactor).round();
       // If there is at least one visible point in the current point group...
-      if (_averageYValues[index] != null) return index;
+      if (index >= 0 && _averageYValues[index] != null) return index;
     }
     return -1;
   }
