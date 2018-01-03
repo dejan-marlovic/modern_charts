@@ -892,6 +892,8 @@ class Chart {
         dataTable.onColumnsChange.listen(_dataColumnsChanged);
     _dataRowsChangeSub = dataTable.onRowsChange.listen(_dataRowsChanged);
     _options = mergeMap(options, _defaultOptions);
+    if (_options == null) _options = _defaultOptions;
+
     _easingFunction = getEasingFunction(_options['animation']['easing']);
     _initializeLegend();
     _initializeTooltip();
