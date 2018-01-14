@@ -25,8 +25,8 @@ lerp(start, end, double f) => start + (end - start) * f;
 bool isInRange(num value, num min, num max) => value >= min && value <= max;
 
 Point<double> polarToCartesian(Point center, num radius, num angle) {
-  var x = center.x + radius * cos(angle);
-  var y = center.y + radius * sin(angle);
+  num x = center.x + radius * cos(angle);
+  num y = center.y + radius * sin(angle);
   return new Point<double>(x, y);
 }
 
@@ -125,13 +125,13 @@ double calculateMaxTextWidth(CanvasRenderingContext2D context, String font, List
 ///
 /// Credit: Rob Spencer (http://scaledinnovation.com/analytics/splines/aboutSplines.html)
 List<Point> calculateControlPoints(Point p1, Point p2, Point p3, num t) {
-  var d21 = p2.distanceTo(p1);
-  var d23 = p2.distanceTo(p3);
-  var fa = t * d21 / (d21 + d23);
-  var fb = t * d23 / (d21 + d23);
-  var v13 = p3 - p1;
-  var cp1 = p2 - v13 * fa;
-  var cp2 = p2 + v13 * fb;
+  num d21 = p2.distanceTo(p1);
+  num d23 = p2.distanceTo(p3);
+  num fa = t * d21 / (d21 + d23);
+  num fb = t * d23 / (d21 + d23);
+  Point<num> v13 = p3 - p1;
+  Point<num> cp1 = p2 - v13 * fa;
+  Point<num> cp2 = p2 + v13 * fb;
   return [cp1, cp2];
 }
 

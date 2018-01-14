@@ -180,9 +180,9 @@ class _Bar extends _Entity {
 
   @override
   void draw(CanvasRenderingContext2D ctx, double percent, bool highlight) {
-    var x = lerp(oldLeft, left, percent);
-    var h = lerp(oldHeight, height, percent);
-    var w = lerp(oldWidth, width, percent);
+    num x = lerp(oldLeft, left, percent);
+    num h = lerp(oldHeight, height, percent);
+    num w = lerp(oldWidth, width, percent);
     ctx.fillStyle = color;
     ctx.fillRect(x, bottom - h, w, h);
     if (highlight) {
@@ -212,7 +212,7 @@ class BarChart extends _TwoAxisChart {
   }
 
   void _updateBarWidth() {
-    var count = _countVisibleSeries();
+    int count = _countVisibleSeries();
     if (count > 0) {
       _barWidth = (_barGroupWidth + _barSpacing) / count - _barSpacing;
     } else {
@@ -229,16 +229,16 @@ class BarChart extends _TwoAxisChart {
   void _calculateAverageYValues([int index]) {
     if (!_options['tooltip']['enabled']) return;
 
-    var entityCount = _seriesList.first.entities.length;
-    var start = index ?? 0;
-    var end = index == null ? entityCount : index + 1;
+    int entityCount = _seriesList.first.entities.length;
+    int start = index ?? 0;
+    int end = index == null ? entityCount : index + 1;
 
     _averageYValues ??= <num>[];
     _averageYValues.length = entityCount;
 
     for (var i = start; i < end; i++) {
-      var sum = 0.0;
-      var count = 0;
+      num sum = 0.0;
+      num count = 0;
       for (var j = _seriesList.length - 1; j >= 0; j--) {
         var state = _seriesStates[j];
         if (state == _VisibilityState.hidden) continue;
@@ -294,8 +294,8 @@ class BarChart extends _TwoAxisChart {
           ..textBaseline = 'alphabetic';
         for (_Bar bar in series.entities) {
           if (bar.value == null) continue;
-          var x = bar.left + .5 * bar.width;
-          var y = _xAxisTop - bar.height - 5;
+          num x = bar.left + .5 * bar.width;
+          num y = _xAxisTop - bar.height - 5;
           _seriesContext.fillText(bar.formattedValue, x, y);
         }
       }
@@ -307,13 +307,13 @@ class BarChart extends _TwoAxisChart {
   @override
   _Entity _createEntity(int seriesIndex, int entityIndex, value, String color,
       String highlightColor) {
-    var left = _getBarLeft(seriesIndex, entityIndex);
-    var oldLeft = left;
-    var height = _valueToBarHeight(value);
+    num left = _getBarLeft(seriesIndex, entityIndex);
+    num oldLeft = left;
+    num height = _valueToBarHeight(value);
 
     // Animate width.
-    var oldHeight = height;
-    var oldWidth = 0;
+    num oldHeight = height;
+    num oldWidth = 0;
 
     if (_seriesList == null) {
       // Data table changed. Animate height.
@@ -339,10 +339,10 @@ class BarChart extends _TwoAxisChart {
   @override
   void _updateSeries([int index]) {
     var entityCount = _dataTable.rows.length;
-    for (var i = 0; i < _seriesList.length; i++) {
+    for (int i = 0; i < _seriesList.length; i++) {
       var series = _seriesList[i];
-      var left = _getBarLeft(i, 0);
-      var barWidth = 0.0;
+      num left = _getBarLeft(i, 0);
+      num barWidth = 0.0;
       if (_seriesStates[i].index >= _VisibilityState.showing.index) {
         barWidth = _barWidth;
       }

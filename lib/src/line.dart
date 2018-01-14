@@ -210,9 +210,9 @@ class _Point extends _Entity {
 
   @override
   void draw(CanvasRenderingContext2D ctx, double percent, bool highlight) {
-    var cx = lerp(oldX, x, percent);
-    var cy = lerp(oldY, y, percent);
-    var pr = lerp(oldPointRadius, pointRadius, percent);
+    num cx = lerp(oldX, x, percent);
+    num cy = lerp(oldY, y, percent);
+    num pr = lerp(oldPointRadius, pointRadius, percent);
     if (highlight) {
       ctx.fillStyle = highlightColor;
       ctx.beginPath();
@@ -246,17 +246,17 @@ class LineChart extends _TwoAxisChart {
   void _calculateAverageYValues([int index]) {
     if (!_options['tooltip']['enabled']) return;
 
-    var entityCount = _dataTable.rows.length;
-    var start = index ?? 0;
-    var end = index == null ? entityCount : index + 1;
+    int entityCount = _dataTable.rows.length;
+    int start = index ?? 0;
+    int end = index == null ? entityCount : index + 1;
 
     _averageYValues ??= <num>[];
     _averageYValues.length = entityCount;
 
-    for (var i = start; i < end; i++) {
-      var sum = 0.0;
-      var count = 0;
-      for (var j = _seriesList.length - 1; j >= 0; j--) {
+    for (int i = start; i < end; i++) {
+      num sum = 0.0;
+      num count = 0;
+      for (int j = _seriesList.length - 1; j >= 0; j--) {
         if (_seriesStates[j].index <= _VisibilityState.hiding.index) continue;
         var point = _seriesList[j].entities[i] as _Point;
         if (point.value != null) {
@@ -276,10 +276,10 @@ class LineChart extends _TwoAxisChart {
 
   List<_Point> _lerpPoints(List<_Point> points, double percent) {
     return points.map((p) {
-      var x = lerp(p.oldX, p.x, percent);
-      var y = lerp(p.oldY, p.y, percent);
-      var cp1 = (p.cp1 != null) ? lerp(p.oldCp1, p.cp1, percent) : null;
-      var cp2 = (p.cp2 != null) ? lerp(p.oldCp2, p.cp2, percent) : null;
+      num x = lerp(p.oldX, p.x, percent);
+      num y = lerp(p.oldY, p.y, percent);
+      Point<num> cp1 = (p.cp1 != null) ? lerp(p.oldCp1, p.cp1, percent) : null;
+      Point<num> cp2 = (p.cp2 != null) ? lerp(p.oldCp2, p.cp2, percent) : null;
       return new _Point()
         ..index = p.index
         ..value = p.value
@@ -310,19 +310,19 @@ class LineChart extends _TwoAxisChart {
       }
     }
 
-    var seriesCount = _seriesList.length;
-    var entityCount = _dataTable.rows.length;
+    int seriesCount = _seriesList.length;
+    int entityCount = _dataTable.rows.length;
     var fillOpacity = _options['series']['fillOpacity'];
     var seriesLineWidth = _options['series']['lineWidth'];
     var markerOptions = _options['series']['markers'];
     var markerSize = markerOptions['size'];
 
-    for (var i = 0; i < seriesCount; i++) {
+    for (int i = 0; i < seriesCount; i++) {
       if (_seriesStates[i] == _VisibilityState.hidden) continue;
 
       var series = _seriesList[i];
       var points = _lerpPoints(series.entities, percent);
-      var scale = (i != _focusedSeriesIndex) ? 1 : 2;
+      int scale = (i != _focusedSeriesIndex) ? 1 : 2;
 
       _seriesContext.lineJoin = 'round';
 
@@ -332,7 +332,7 @@ class LineChart extends _TwoAxisChart {
         var color = _changeColorAlpha(series.color, fillOpacity);
         _seriesContext.fillStyle = color;
         _seriesContext.strokeStyle = color;
-        var j = 0;
+        int j = 0;
         while (true) {
           // Skip points with a null value.
           while (j < entityCount && points[j].value == null) j++;
@@ -348,7 +348,7 @@ class LineChart extends _TwoAxisChart {
             ..moveTo(p.x, _xAxisTop)
             ..lineTo(p.x, p.y);
           var lastPoint = p;
-          var count = 1;
+          int count = 1;
           while (++j < entityCount && points[j].value != null) {
             p = points[j];
             curveTo(lastPoint.cp2, p.cp1, p);
@@ -416,13 +416,13 @@ class LineChart extends _TwoAxisChart {
         ..font = _getFont(labelOptions['style'])
         ..textAlign = 'center'
         ..textBaseline = 'alphabetic';
-      for (var i = 0; i < seriesCount; i++) {
+      for (int i = 0; i < seriesCount; i++) {
         if (_seriesStates[i] != _VisibilityState.shown) continue;
 
         var points = _seriesList[i].entities as List<_Point>;
         for (var p in points) {
           if (p.value != null) {
-            var y = p.y - markerSize - 5;
+            num y = p.y - markerSize - 5;
             _seriesContext.fillText(p.formattedValue, p.x, y);
           }
         }
@@ -435,8 +435,8 @@ class LineChart extends _TwoAxisChart {
   @override
   _Entity _createEntity(int seriesIndex, int entityIndex, value, String color,
       String highlightColor) {
-    var x = _xLabelX(entityIndex);
-    var oldY = _xAxisTop;
+    num x = _xLabelX(entityIndex);
+    num oldY = _xAxisTop;
     // oldCp1 and oldCp2 are calculated in [_updateSeries].
     return new _Point()
       ..index = entityIndex
@@ -454,14 +454,14 @@ class LineChart extends _TwoAxisChart {
 
   @override
   void _updateSeries([int index]) {
-    var entityCount = _dataTable.rows.length;
+    int entityCount = _dataTable.rows.length;
     var markerSize = _options['series']['markers']['size'];
     var curveTension = _options['series']['curveTension'];
     var curve = curveTension > 0 && entityCount > 2;
 
-    var start = index ?? 0;
-    var end = (index == null) ? _seriesList.length : index + 1;
-    for (var i = start; i < end; i++) {
+    int start = index ?? 0;
+    int end = (index == null) ? _seriesList.length : index + 1;
+    for (int i = start; i < end; i++) {
       var visible = _seriesStates[i].index >= _VisibilityState.showing.index;
       var series = _seriesList[i];
       var entities = series.entities;
@@ -470,7 +470,7 @@ class LineChart extends _TwoAxisChart {
       series.color = color;
       series.highlightColor = highlightColor;
 
-      for (var j = 0; j < entityCount; j++) {
+      for (int j = 0; j < entityCount; j++) {
         var e = entities[j] as _Point;
         e.index = j;
         e.color = color;
@@ -485,7 +485,7 @@ class LineChart extends _TwoAxisChart {
       var e1;
       var e2 = entities[0] as _Point;
       var e3 = entities[1] as _Point;
-      for (var j = 2; j < entityCount; j++) {
+      for (int j = 2; j < entityCount; j++) {
         e1 = e2;
         e2 = e3;
         e3 = entities[j];

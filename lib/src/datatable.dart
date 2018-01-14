@@ -48,12 +48,12 @@ class DataRow extends _TableEntity {
   /// the remaining columns are filled with `null`.
   DataRow._internal(DataTable table, List values) {
     _table = table;
-    var n = _table._columns.length;
-    var m = values.length;
-    var min = m;
+    int n = _table._columns.length;
+    int m = values.length;
+    int min = m;
     if (min > n) min = n;
     _cells = values.sublist(0, min);
-    for (var i = min; i < n; i++) {
+    for (int i = min; i < n; i++) {
       _cells.add(null);
     }
   }
@@ -63,8 +63,8 @@ class DataRow extends _TableEntity {
 
   /// Sets the value of the column specified by [columnIndexOrName].
   operator []=(columnIndexOrName, value) {
-    var columnIndex = _toIndex(columnIndexOrName);
-    var oldValue = _cells[columnIndex];
+    int columnIndex = _toIndex(columnIndexOrName);
+    int oldValue = _cells[columnIndex];
     _cells[columnIndex] = value;
     _table._onCellChanged(_index, columnIndex, oldValue, value);
   }
@@ -169,14 +169,14 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   }
 
   void add(E value) {
-    var index = length;
+    int index = length;
     _base.add(value);
     _updateItems(index);
     _table._onRowsOrColumnsInserted(this, index, 1);
   }
 
   void addAll(Iterable<E> iterable) {
-    var index = length;
+    int index = length;
     _base.addAll(iterable);
     _updateItems(index);
     _table._onRowsOrColumnsInserted(this, index, iterable.length);
@@ -198,14 +198,14 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   }
 
   bool remove(Object element) {
-    var index = _base.indexOf(element);
+    int index = _base.indexOf(element);
     if (index == -1) return false;
     removeAt(index);
     return true;
   }
 
   void clear() {
-    var len = length;
+    int len = length;
     if (len == 0) return;
     _releaseItems(0, len);
     _base.clear();
@@ -358,13 +358,13 @@ class DataTable {
 
     if (data == null) return;
 
-    var colCount = data.first.length;
-    var rowCount = data.length;
+    int colCount = data.first.length;
+    int rowCount = data.length;
 
-    for (var colIndex = 0; colIndex < colCount; colIndex++) {
+    for (int colIndex = 0; colIndex < colCount; colIndex++) {
       var name = data[0][colIndex];
       var type = Object;
-      for (var rowIndex = 1; rowIndex < rowCount; rowIndex++) {
+      for (int rowIndex = 1; rowIndex < rowCount; rowIndex++) {
         var value = data[rowIndex][colIndex];
         if (value == null) continue;
         if (value is String) type = String;

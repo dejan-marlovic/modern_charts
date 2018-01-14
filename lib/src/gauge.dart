@@ -79,8 +79,8 @@ class GaugeChart extends Chart {
   void _calculateDrawingSizes() {
     super._calculateDrawingSizes();
 
-    var gaugeCount = _dataTable.rows.length;
-    var labelTotalHeight = 0;
+    int gaugeCount = _dataTable.rows.length;
+    num labelTotalHeight = 0;
     if (_options['gaugeLabels']['enabled']) {
       labelTotalHeight =
           _axisLabelMargin + _options['gaugeLabels']['style']['fontSize'];
@@ -89,8 +89,8 @@ class GaugeChart extends Chart {
     _gaugeCenterY = _seriesAndAxesBox.top + .5 * _seriesAndAxesBox.height;
     _gaugeHop = _seriesAndAxesBox.width / gaugeCount;
 
-    var availW = .618 * _gaugeHop; // Golden ratio.
-    var availH = _seriesAndAxesBox.height - 2 * labelTotalHeight;
+    num availW = .618 * _gaugeHop; // Golden ratio.
+    num availH = _seriesAndAxesBox.height - 2 * labelTotalHeight;
     _gaugeOuterRadius = .5 * min(availW, availH) / _highlightOuterRadiusFactor;
     _gaugeInnerRadius = .5 * _gaugeOuterRadius;
   }
@@ -108,8 +108,8 @@ class GaugeChart extends Chart {
 
       if (!labelsEnabled) continue;
 
-      var x = gauge.center.x;
-      var y = gauge.center.y +
+      num x = gauge.center.x;
+      num y = gauge.center.y +
           gauge.outerRadius +
           style['fontSize'] +
           _axisLabelMargin;
@@ -149,8 +149,8 @@ class GaugeChart extends Chart {
 
   @override
   void _updateSeries([int index]) {
-    var n = _dataTable.rows.length;
-    for (var i = 0; i < n; i++) {
+    int n = _dataTable.rows.length;
+    for (int i = 0; i < n; i++) {
       var gauge = _seriesList[0].entities[i] as _Gauge;
       var color = _getColor(i);
       var highlightColor = _changeColorAlpha(color, .5);
@@ -189,8 +189,8 @@ class GaugeChart extends Chart {
   @override
   Point _getTooltipPosition() {
     var gauge = _seriesList[0].entities[_focusedEntityIndex] as _Gauge;
-    var x = gauge.center.x - _tooltip.offsetWidth ~/ 2;
-    var y = gauge.center.y -
+    num x = gauge.center.x - _tooltip.offsetWidth ~/ 2;
+    num y = gauge.center.y -
         _highlightOuterRadiusFactor * gauge.outerRadius -
         _tooltip.offsetHeight -
         5;

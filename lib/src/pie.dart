@@ -53,11 +53,11 @@ class _Pie extends _Entity {
 
   bool containsPoint(Point p) {
     p -= center;
-    var mag = p.magnitude;
+    num mag = p.magnitude;
     if (mag > outerRadius || mag < innerRadius) return false;
 
-    var angle = atan2(p.y, p.x);
-    var chartStartAngle = (chart as dynamic)._startAngle;
+    num angle = atan2(p.y, p.x);
+    num chartStartAngle = (chart as dynamic)._startAngle;
 
     // Make sure [angle] is in range [chartStartAngle]..[chartStartAngle] + 2PI.
     angle = (angle - chartStartAngle) % _2PI + chartStartAngle;
@@ -77,15 +77,15 @@ class _Pie extends _Entity {
 
   @override
   void draw(CanvasRenderingContext2D ctx, double percent, bool highlight) {
-    var a1 = lerp(oldStartAngle, startAngle, percent);
-    var a2 = lerp(oldEndAngle, endAngle, percent);
+    num a1 = lerp(oldStartAngle, startAngle, percent);
+    num a2 = lerp(oldEndAngle, endAngle, percent);
     if (a1 > a2) {
-      var tmp = a1;
+      num tmp = a1;
       a1 = a2;
       a2 = tmp;
     }
     if (highlight) {
-      var highlightOuterRadius = _highlightOuterRadiusFactor * outerRadius;
+      num highlightOuterRadius = _highlightOuterRadiusFactor * outerRadius;
       ctx.fillStyle = highlightColor;
       ctx.beginPath();
       ctx.arc(center.x, center.y, highlightOuterRadius, a1, a2);
@@ -102,9 +102,9 @@ class _Pie extends _Entity {
     if (formattedValue != null && chart is PieChart && a2 - a1 > PI / 36) {
       var options = chart._options['series']['labels'];
       if (options['enabled']) {
-        var r = .25 * innerRadius + .75 * outerRadius;
-        var a = .5 * (a1 + a2);
-        var p = polarToCartesian(center, r, a);
+        num r = .25 * innerRadius + .75 * outerRadius;
+        num a = .5 * (a1 + a2);
+        Point<num> p = polarToCartesian(center, r, a);
         ctx.fillStyle = options['style']['color'];
         ctx.fillText(formattedValue, p.x, p.y);
       }
@@ -134,11 +134,11 @@ class PieChart extends Chart {
   void _calculateDrawingSizes() {
     super._calculateDrawingSizes();
     var rect = _seriesAndAxesBox;
-    var halfW = rect.width >> 1;
-    var halfH = rect.height >> 1;
+    num halfW = rect.width >> 1;
+    num halfH = rect.height >> 1;
     _center = new Point(rect.left + halfW, rect.top + halfH);
     _outerRadius = min(halfW, halfH) / _highlightOuterRadiusFactor;
-    var pieHole = _options['pieHole'];
+    num pieHole = _options['pieHole'];
     if (pieHole > 1) pieHole = 0;
     if (pieHole < 0) pieHole = 0;
     _innerRadius = pieHole * _outerRadius;
@@ -181,7 +181,7 @@ class PieChart extends Chart {
   int _getEntityGroupIndex(num x, num y) {
     var p = new Point(x, y);
     var entities = _seriesList.first.entities;
-    for (var i = entities.length - 1; i >= 0; i--) {
+    for (int i = entities.length - 1; i >= 0; i--) {
       var pie = entities[i] as _Pie;
       if (pie.containsPoint(p)) return i;
     }
@@ -194,11 +194,11 @@ class PieChart extends Chart {
   @override
   Point _getTooltipPosition() {
     var pie = _seriesList.first.entities[_focusedEntityIndex] as _Pie;
-    var angle = .5 * (pie.startAngle + pie.endAngle);
-    var radius = .5 * (_innerRadius + _outerRadius);
+    num angle = .5 * (pie.startAngle + pie.endAngle);
+    num radius = .5 * (_innerRadius + _outerRadius);
     var point = polarToCartesian(_center, radius, angle);
-    var x = point.x - .5 * _tooltip.offsetWidth;
-    var y = point.y - _tooltip.offsetHeight;
+    num x = point.x - .5 * _tooltip.offsetWidth;
+    num y = point.y - _tooltip.offsetHeight;
     return new Point(x, y);
   }
 
@@ -209,7 +209,7 @@ class PieChart extends Chart {
     color = _getColor(entityIndex);
     highlightColor = _changeColorAlpha(color, .5);
     var name = _dataTable.rows[entityIndex][0];
-    var startAngle = _startAngle;
+    num startAngle = _startAngle;
     if (entityIndex > 0 && _seriesList != null) {
       var prevPie = _seriesList[0].entities[entityIndex - 1] as _Pie;
       startAngle = prevPie.endAngle;
@@ -239,19 +239,19 @@ class PieChart extends Chart {
     //   Firefox  .20
     //   Other    .15
 
-    var sum = 0.0;
-    var startAngle = _startAngle;
-    var pieCount = _dataTable.rows.length;
+    num sum = 0.0;
+    num startAngle = _startAngle;
+    int pieCount = _dataTable.rows.length;
     var pies = _seriesList[0].entities as List<_Pie>;
 
     // Sum the values of all visible pies.
-    for (var i = 0; i < pieCount; i++) {
+    for (int i = 0; i < pieCount; i++) {
       if (_seriesStates[i].index >= _VisibilityState.showing.index) {
         sum += pies[i].value;
       }
     }
 
-    for (var i = 0; i < pieCount; i++) {
+    for (int i = 0; i < pieCount; i++) {
       var pie = pies[i];
       var color = _getColor(i);
       pie.index = i;
