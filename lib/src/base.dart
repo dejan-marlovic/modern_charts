@@ -267,7 +267,7 @@ class Chart {
   /// The rendering context for the series.
   CanvasRenderingContext2D _seriesContext;
 
-  List<_Series> _seriesList = [];
+  List<_Series> _seriesList;
 
   /// A list used to keep track of the visibility of the series.
 //  List<bool> _seriesVisible;
@@ -911,9 +911,9 @@ class Chart {
       _height = h;
       forceRedraw = true;
 
-      double dpr = window.devicePixelRatio;
-      num scaledW = (w * dpr).round();
-      num scaledH = (h * dpr).round();
+      num dpr = window.devicePixelRatio;
+      int scaledW = (w * dpr).round();
+      int scaledH = (h * dpr).round();
 
       void setCanvasSize(CanvasRenderingContext2D ctx) {
         // Scale the drawing canvas by [dpr] to ensure sharp rendering on
