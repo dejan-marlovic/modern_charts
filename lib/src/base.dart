@@ -172,6 +172,7 @@ abstract class _Entity {
 
   void free() {
     chart = null;
+
   }
 
   void save() {
@@ -242,6 +243,8 @@ class Chart {
       new StreamSubscriptionTracker();
 
   StreamSubscription _mouseMoveSub;
+  StreamSubscription _windowResizeSub;
+
 
   /// The tooltip element. To position the tooltip, change its transform CSS.
   Element _tooltip;
@@ -863,7 +866,7 @@ class Chart {
 
     if (_instances == null) {
       _instances = new Set<Chart>();
-      window.onResize.listen(_windowResize);
+      _windowResizeSub = window.onResize.listen(_windowResize);
     }
     _instances.add(this);
   }
@@ -876,6 +879,12 @@ class Chart {
 
   /// The data table that stores chart data.
   DataTable get dataTable => _dataTable;
+
+  void free()
+  {
+    _windowResizeSub?.cancel();
+    _mouseMoveSub?.cancel();
+  }
 
   /// Draws the chart given a data table [dataTable] and an optional set of
   /// options [options].
