@@ -267,7 +267,7 @@ class Chart {
   /// The rendering context for the series.
   CanvasRenderingContext2D _seriesContext;
 
-  List<_Series> _seriesList;
+  List<_Series> _seriesList = [];
 
   /// A list used to keep track of the visibility of the series.
 //  List<bool> _seriesVisible;
