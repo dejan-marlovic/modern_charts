@@ -196,9 +196,9 @@ Map extendMap(Map src, Map ext) {
 }
 
 class StreamSubscriptionTracker {
-  List<StreamSubscription> _subs = <StreamSubscription>[];
+  List<StreamSubscription<Event>> _subs = <StreamSubscription<Event>>[];
 
-  void add(Stream stream, void listener(event)) {
+  void add(Stream<Event> stream, void listener(Event event)) {
     _subs.add(stream.listen(listener));
   }
 

@@ -6,5 +6,3 @@ homepage: https://github.com/jolleekin/modern_charts
 documentation: https://github.com/jolleekin/modern_charts/wiki/Docs
 dependencies:
   intl: any
-dev_dependencies:
-  browser: any
