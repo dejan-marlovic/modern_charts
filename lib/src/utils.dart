@@ -19,7 +19,14 @@ double log10(num value) => log(value) / LN10;
 /// end value [end], and the interpolation factor [f].
 ///
 /// [start] and [end] can be of any type which defines three operators +, - , *.
-lerp(start, end, double f) => start + (end - start) * f;
+lerp(start, end, double f)
+{
+  if (start == null) throw new ArgumentError.notNull('start');
+  if (end == null) throw new ArgumentError.notNull('end');
+  if (f == null) throw new ArgumentError.notNull('f');
+
+  return start + (end - start) * f;
+}
 
 /// Tests if [value] is in range [min]..[max], inclusively.
 bool isInRange(num value, num min, num max) => value >= min && value <= max;
