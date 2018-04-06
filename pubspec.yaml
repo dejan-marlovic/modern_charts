@@ -5,6 +5,6 @@ description: A package for creating simple yet modern looking charts.
 homepage: https://github.com/jolleekin/modern_charts
 documentation: https://github.com/jolleekin/modern_charts/wiki/Docs
 environment:
-  sdk: '>=2.0.0-dev.23.0 <2.0.0'
+  sdk: '>=2.0.0-dev.39.0 <2.0.0'
 dependencies:
   intl: any

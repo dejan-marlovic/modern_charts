@@ -1,10 +1,10 @@
 library example;
 
 import 'dart:html';
-import 'package:modern_charts/modern_charts.dart';
 import 'dart:math';
+import 'package:modern_charts/modern_charts.dart';
 
-final random = new Random();
+final Random random = new Random();
 
 int rand(int min, int max) => random.nextInt(max - min) + min;
 
@@ -17,7 +17,7 @@ void main() {
 }
 
 Element createContainer() {
-  var e = new DivElement()
+  final e = new DivElement()
     ..style.height = '400px'
 //    ..style.width = '800px'
     ..style.maxWidth = '100%'
@@ -27,7 +27,7 @@ Element createContainer() {
 }
 // February
 void createBarChart() {
-  var table = new DataTable([
+  final table = new DataTable([
     ['Categories', 'Long series name', 'Series 2', 'Series 3'],
     ['January', 1, 3, 5],
     ['February', 3, 4, 6],
@@ -43,20 +43,20 @@ void createBarChart() {
     ['December', 3, 4, 2],
   ]);
 
-  var changeDataButton = new ButtonElement()..text = 'Change data';
+  final changeDataButton = new ButtonElement()..text = 'Change data';
   document.body.append(changeDataButton);
 
-  var insertRemoveColumnButton = new ButtonElement()
+  final insertRemoveColumnButton = new ButtonElement()
     ..text = 'Insert/remove data column';
   document.body.append(insertRemoveColumnButton);
 
-  var insertRemoveRowButton = new ButtonElement()
+  final insertRemoveRowButton = new ButtonElement()
     ..text = 'Insert/remove data row';
   document.body.append(insertRemoveRowButton);
 
-  var container = createContainer();
+  final container = createContainer();
 
-  var options = {
+  final options = {
     'animation': {
       'onEnd': () {
         changeDataButton.disabled = false;
@@ -76,8 +76,7 @@ void createBarChart() {
     'tooltip': {'valueFormatter': (value) => '$value units'}
   };
 
-  var chart = new BarChart(container);
-  chart.draw(table, options);
+  final chart = new BarChart(container)..draw(table, options);
 
   void disableAllButtons() {
     changeDataButton.disabled = true;
@@ -114,7 +113,7 @@ void createBarChart() {
   insertRemoveRowButton.onClick.listen((_) {
     disableAllButtons();
     if (insertRow) {
-      var values = <dynamic>['New'];
+      final values = <dynamic>['New'];
       for (var i = 1; i < table.columns.length; i++) {
         values.add(rand(2, 20));
       }
@@ -128,7 +127,7 @@ void createBarChart() {
 }
 
 void createLineChart() {
-  var table = new DataTable([
+  final table = new DataTable([
     ['Categories', 'Series 1', 'Series 2', 'Series 3'],
     ['Monday', 1, 3, 5],
     ['Tuesday', 3, 4, 6],
@@ -139,20 +138,20 @@ void createLineChart() {
     ['Sunday', 4, 12, 8]
   ]);
 
-  var changeDataButton = new ButtonElement()..text = 'Change data';
+  final changeDataButton = new ButtonElement()..text = 'Change data';
   document.body.append(changeDataButton);
 
-  var insertRemoveColumnButton = new ButtonElement()
+  final insertRemoveColumnButton = new ButtonElement()
     ..text = 'Insert/remove data column';
   document.body.append(insertRemoveColumnButton);
 
-  var insertRemoveRowButton = new ButtonElement()
+  final insertRemoveRowButton = new ButtonElement()
     ..text = 'Insert/remove data row';
   document.body.append(insertRemoveRowButton);
 
-  var container = createContainer();
+  final container = createContainer();
 
-  var options = {
+  final options = {
     'animation': {
       'onEnd': () {
         changeDataButton.disabled = false;
@@ -168,8 +167,7 @@ void createLineChart() {
     'title': {'text': 'Line Chart Demo'}
   };
 
-  var chart = new LineChart(container);
-  chart.draw(table, options);
+  final chart = new LineChart(container)..draw(table, options);
 
   void disableAllButtons() {
     changeDataButton.disabled = true;
@@ -206,7 +204,7 @@ void createLineChart() {
   insertRemoveRowButton.onClick.listen((_) {
     disableAllButtons();
     if (insertRow) {
-      var values = <Object>['New'];
+      final values = <dynamic>['New'];
       for (var i = 1; i < table.columns.length; i++) {
         values.add(rand(2, 20));
       }
@@ -220,15 +218,15 @@ void createLineChart() {
 }
 
 void createPieChart() {
-  var changeDataButton = new ButtonElement()..text = 'Change data';
+  final changeDataButton = new ButtonElement()..text = 'Change data';
   document.body.append(changeDataButton);
 
-  var insertRemoveRowButton = new ButtonElement()
+  final insertRemoveRowButton = new ButtonElement()
     ..text = 'Insert/remove data row';
   document.body.append(insertRemoveRowButton);
 
-  var container = createContainer();
-  var table = new DataTable([
+  final container = createContainer();
+  final table = new DataTable([
     ['Browser', 'Share'],
     ['Chrome', 35],
     ['Firefox', 20],
@@ -237,8 +235,7 @@ void createPieChart() {
     ['Safari', 8],
     ['Other', 2]
   ]);
-  var chart = new PieChart(container);
-  chart.draw(table, {
+  final chart = new PieChart(container)..draw(table, {
     'animation': {
       'onEnd': () {
         changeDataButton.disabled = false;
@@ -273,7 +270,7 @@ void createPieChart() {
   insertRemoveRowButton.onClick.listen((_) {
     insertRemoveRowButton.disabled = true;
     if (insertRow) {
-      var values = ['New', 6];
+      final values = ['New', 6];
       table.rows.insert(2, values);
     } else {
       table.rows.removeAt(2);
@@ -284,7 +281,7 @@ void createPieChart() {
 }
 
 void createRadarChart() {
-  var table = new DataTable([
+  final table = new DataTable([
     ['Categories', 'Series 1'],
     ['Monday', 8],
     ['Tuesday', 17],
@@ -295,20 +292,20 @@ void createRadarChart() {
     ['Sunday', 14]
   ]);
 
-  var changeDataButton = new ButtonElement()..text = 'Change data';
+  final changeDataButton = new ButtonElement()..text = 'Change data';
   document.body.append(changeDataButton);
 
-  var insertRemoveColumnButton = new ButtonElement()
+  final insertRemoveColumnButton = new ButtonElement()
     ..text = 'Insert/remove data column';
   document.body.append(insertRemoveColumnButton);
 
-  var insertRemoveRowButton = new ButtonElement()
+  final insertRemoveRowButton = new ButtonElement()
     ..text = 'Insert/remove data row';
   document.body.append(insertRemoveRowButton);
 
-  var container = createContainer();
+  final container = createContainer();
 
-  var options = {
+  final options = {
     'animation': {
       'onEnd': () {
         changeDataButton.disabled = false;
@@ -323,8 +320,7 @@ void createRadarChart() {
     'tooltip': {'valueFormatter': (value) => '$value units'}
   };
 
-  var chart = new RadarChart(container);
-  chart.draw(table, options);
+  final chart = new RadarChart(container)..draw(table, options);
 
   void disableAllButtons() {
     changeDataButton.disabled = true;
@@ -361,7 +357,7 @@ void createRadarChart() {
   insertRemoveRowButton.onClick.listen((_) {
     disableAllButtons();
     if (insertRow) {
-      var values = <Object>['New'];
+      final values = <dynamic>['New'];
       for (var i = 1; i < table.columns.length; i++) {
         values.add(rand(5, 20));
       }
@@ -375,24 +371,23 @@ void createRadarChart() {
 }
 
 void createGaugeChart() {
-  var changeDataButton = new ButtonElement()..text = 'Change data';
+  final changeDataButton = new ButtonElement()..text = 'Change data';
   document.body.append(changeDataButton);
 
-  var insertRemoveRowButton = new ButtonElement()
+  final insertRemoveRowButton = new ButtonElement()
     ..text = 'Insert/remove data row';
   document.body.append(insertRemoveRowButton);
 
-  var container = createContainer();
-  var table = new DataTable([
+  final container = createContainer();
+  final table = new DataTable([
     ['Browser', 'Share'],
     ['Memory', 25],
 //    ['CPU', 75],
 //    ['Disk', 40]
   ]);
-  var chart = new GaugeChart(container);
-  chart.draw(table, {
+  final chart = new GaugeChart(container)..draw(table, {
     'animation': {
-      'easing': (double t) {
+      'easing': (t) {
         t = 4 * t - 2;
         return (t * t * t - t) / 12 + .5;
       },
@@ -424,7 +419,7 @@ void createGaugeChart() {
   insertRemoveRowButton.onClick.listen((_) {
     insertRemoveRowButton.disabled = true;
     if (insertRow) {
-      var values = ['New', rand(0, 101)];
+      final values = <dynamic>['New', rand(0, 101)];
       table.rows.insert(1, values);
     } else {
       table.rows.removeAt(1);

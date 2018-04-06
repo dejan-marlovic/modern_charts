@@ -7,19 +7,21 @@ import 'dart:math';
 import 'datatable.dart';
 
 /// Converts [angle] in radians to degrees.
-double rad2deg(num angle) => angle * 180 / PI;
+double rad2deg(num angle) => angle * 180 / pi;
 
 /// Converts [angle] in degrees to radians.
-double deg2rad(num angle) => angle * PI / 180;
+double deg2rad(num angle) => angle * pi / 180;
 
 /// Returns the base-10 logarithm of [value].
-double log10(num value) => log(value) / LN10;
+double log10(num value) => log(value) / ln10;
 
 /// Returns a linear interpolated value based on the start value [start], the
 /// end value [end], and the interpolation factor [f].
 ///
 /// [start] and [end] can be of any type which defines three operators +, - , *.
-lerp(start, end, double f)
+
+// ignore: avoid_annotating_with_dynamic
+dynamic lerp(dynamic start, dynamic end, double f)
 {
   if (start == null) throw new ArgumentError.notNull('start');
   if (end == null) throw new ArgumentError.notNull('end');
@@ -31,24 +33,25 @@ lerp(start, end, double f)
 /// Tests if [value] is in range [min]..[max], inclusively.
 bool isInRange(num value, num min, num max) => value >= min && value <= max;
 
-Point<double> polarToCartesian(Point center, num radius, num angle) {
-  num x = center.x + radius * cos(angle);
-  num y = center.y + radius * sin(angle);
-  return new Point<double>(x, y);
+Point<num> polarToCartesian(Point center, num radius, num angle) {
+  final x = center.x + radius * cos(angle);
+  final y = center.y + radius * sin(angle);
+  return new Point<num>(x, y);
 }
 
 /// Rounds [value] to [places] decimal places.
-double roundToPlaces(double value, int places) {
-  var p = pow(10, places);
-  value = value * p;
-  return value.round() / p;
+double roundToPlaces(num value, int places) {
+  var v = value;
+  final p = pow(10, places).toDouble();
+  v = v * p;
+  return v.round() / p;
 }
 
 /// Converts [hexColor] and [alpha] to an RGBA color string.
 String hexToRgba(String hexColor, num alpha) {
-  var componentLength = hexColor.length ~/ 3;
-  var i = 1 + componentLength;
-  var j = i + componentLength;
+  final componentLength = hexColor.length ~/ 3;
+  final i = 1 + componentLength;
+  final j = i + componentLength;
   var r = int.parse(hexColor.substring(1, i), radix: 16);
   var g = int.parse(hexColor.substring(i, j), radix: 16);
   var b = int.parse(hexColor.substring(j), radix: 16);
@@ -61,18 +64,14 @@ String hexToRgba(String hexColor, num alpha) {
 }
 
 /// Returns the hyphenated version of [s].
-String hyphenate(String s) {
-  return s.replaceAllMapped(new RegExp('[A-Z]'), (Match m) {
-    return '-' + m[0].toLowerCase();
-  });
-}
-
+String hyphenate(String s)
+  => s.replaceAllMapped(new RegExp('[A-Z]'), (m) => '-${m[0].toLowerCase()}');
 /// Returns the maximum value in a [DataTable].
 num findMaxValue(DataTable table) {
-  var maxValue = double.NEGATIVE_INFINITY;
+  var maxValue = double.negativeInfinity;
   for (var row in table.rows) {
     for (var col in table.columns) {
-      var value = row[col.index];
+      final value = row[col.index];
       if (value is num && value > maxValue) maxValue = value;
     }
   }
@@ -81,10 +80,10 @@ num findMaxValue(DataTable table) {
 
 /// Returns the minimum value in a [DataTable].
 num findMinValue(DataTable table) {
-  var minValue = double.INFINITY;
+  var minValue = double.infinity;
   for (var row in table.rows) {
     for (var col in table.columns) {
-      var value = row[col.index];
+      final value = row[col.index];
       if (value is num && value < minValue) minValue = value;
     }
   }
@@ -96,8 +95,8 @@ num findMinValue(DataTable table) {
 /// - the desired number of steps [targetSteps]
 /// - and the minimum interval [minInterval]
 num calculateInterval(num range, int targetSteps, [num minInterval]) {
-  var interval = range / targetSteps;
-  var mag = log10(interval).floor();
+  final interval = range / targetSteps;
+  final mag = log10(interval).floor();
   var magPow = pow(10, mag).toDouble();
   if (minInterval != null) {
     magPow = max(magPow, minInterval);
@@ -115,11 +114,11 @@ num calculateInterval(num range, int targetSteps, [num minInterval]) {
 
 double calculateMaxTextWidth(CanvasRenderingContext2D context, String font, List<String> texts)
 {
-  double result = 0.0;
+  var result = 0.0;
   context.font = font;
-  for (String text in texts)
+  for (final text in texts)
   {
-    double width = context.measureText(text).width.toDouble();
+    final width = context.measureText(text).width.toDouble();
     if (result < width) result = width;
   }
   return result;
@@ -132,13 +131,13 @@ double calculateMaxTextWidth(CanvasRenderingContext2D context, String font, List
 ///
 /// Credit: Rob Spencer (http://scaledinnovation.com/analytics/splines/aboutSplines.html)
 List<Point> calculateControlPoints(Point p1, Point p2, Point p3, num t) {
-  num d21 = p2.distanceTo(p1);
-  num d23 = p2.distanceTo(p3);
-  num fa = t * d21 / (d21 + d23);
-  num fb = t * d23 / (d21 + d23);
-  Point<num> v13 = p3 - p1;
-  Point<num> cp1 = p2 - v13 * fa;
-  Point<num> cp2 = p2 + v13 * fb;
+  final d21 = p2.distanceTo(p1);
+  final d23 = p2.distanceTo(p3);
+  final fa = t * d21 / (d21 + d23);
+  final fb = t * d23 / (d21 + d23);
+  final v13 = p3 - p1;
+  final cp1 = p2 - v13 * fa;
+  final cp2 = p2 + v13 * fb;
   return [cp1, cp2];
 }
 
@@ -157,14 +156,15 @@ int getDecimalPlaces(num value) {
 /// Keys that exist in [dst] but not in [src] will be removed.
 ///
 /// Returns [dst].
-Map mergeMap(Map dst, Map src) {
-  dst ??= {};
+Map mergeMap(Map<String, dynamic> dst, Map<String, dynamic> src) {
+  // ignore: parameter_assignments
+  dst ??= <String, dynamic>{};
   for (var k in dst.keys.toList()) {
     if (!src.containsKey(k)) dst.remove(k);
   }
   src.forEach((k, v) {
     if (v is Map) {
-      if (!dst.containsKey(k)) dst[k] = {};
+      if (!dst.containsKey(k)) dst[k] = <String, dynamic>{};
       mergeMap(dst[k], v);
     } else {
       if (dst.containsKey(k)) return;
@@ -179,8 +179,8 @@ Map mergeMap(Map dst, Map src) {
 }
 
 /// Creates a copy of [src].
-Map cloneMap(Map src) {
-  var result = {};
+Map cloneMap(Map<String, dynamic> src) {
+  final result = <String, dynamic>{};
   src.forEach((k, v) {
     if (v is Map) {
       result[k] = cloneMap(v);
@@ -194,8 +194,8 @@ Map cloneMap(Map src) {
 }
 
 /// Creates a new map by cloning [src] and extending that copy with [ext].
-Map extendMap(Map src, Map ext) {
-  var result = cloneMap(src);
+Map<String, dynamic> extendMap(Map<String, dynamic> src, Map<String, dynamic> ext) {
+  final result = cloneMap(src);
   ext.forEach((k, v) {
     result[k] = v;
   });
@@ -203,9 +203,9 @@ Map extendMap(Map src, Map ext) {
 }
 
 class StreamSubscriptionTracker {
-  List<StreamSubscription<Event>> _subs = <StreamSubscription<Event>>[];
+  final _subs = <StreamSubscription<MouseEvent>>[];
 
-  void add(Stream<Event> stream, void listener(Event event)) {
+  void add(Stream<MouseEvent> stream, void listener(MouseEvent event)) {
     _subs.add(stream.listen(listener));
   }
 

@@ -15,99 +15,79 @@ import 'dart:math';
 /// [t] = 1.
 typedef double EasingFunction(double t);
 
-double linear(double t) {
-  return t;
-}
+double linear(double t) => t;
 
-double easeInQuad(double t) {
-  return t * t;
-}
+double easeInQuad(double t) => t * t;
 
-double easeOutQuad(double t) {
-  return t * (2 - t);
-}
+double easeOutQuad(double t) => t * (2 - t);
 
 double easeInOutQuad(double t) {
-  t *= 2;
-  if (t < 1) return .5 * t * t;
-  t--;
-  return .5 * (1 - t * (t - 2));
+  var value = t * 2;
+  if (value < 1) return .5 * value * value;
+  value--;
+  return .5 * (1 - value * (value - 2));
 }
 
-double easeInCubic(double t) {
-  return t * t * t;
-}
+double easeInCubic(double t) => t * t * t;
 
 double easeOutCubic(double t) {
-  t--;
-  return t * t * t + 1;
+  final value = t - 1;
+  return value * value * value + 1;
 }
 
 double easeInOutCubic(double t) {
-  t *= 2;
-  if (t < 1) return .5 * t * t * t;
-  t -= 2;
-  return .5 * (t * t * t + 2);
+  var value = t * 2;
+  if (value < 1) return .5 * value * value * value;
+  value -= 2;
+  return .5 * (value * value * value + 2);
 }
 
-double easeInQuart(double t) {
-  return t * t * t * t;
-}
+double easeInQuart(double t) => t * t * t * t;
 
 double easeOutQuart(double t) {
-  t--;
-  return 1 - t * t * t * t;
+  final value = t - 1;
+  return 1 - value * value * value * value;
 }
 
 double easeInOutQuart(double t) {
-  t *= 2;
-  if (t < 1) return .5 * t * t * t * t;
-  t -= 2;
-  return .5 * (2 - t * t * t * t);
+  var value = t * 2;
+
+  if (value < 1) return .5 * value * value * value * value;
+  value -= 2;
+  return .5 * (2 - value * value * value * value);
 }
 
-double easeInQuint(double t) {
-  return t * t * t * t * t;
-}
+double easeInQuint(double t) => t * t * t * t * t;
 
 double easeOutQuint(double t) {
-  t--;
-  return t * t * t * t * t + 1;
+  final value = t - 1;
+  return value * value * value * value * value + 1;
 }
 
 double easeInOutQuint(double t) {
-  t *= 2;
-  if (t < 1) return .5 * t * t * t * t * t;
-  t -= 2;
-  return .5 * (t * t * t * t * t + 2);
+  var value = t * 2;
+  if (value < 1) return .5 * value * value * value * value * value;
+  value -= 2;
+  return .5 * (value * value * value * value * value + 2);
 }
 
-double easeInSine(double t) {
-  return 1 - cos(t * PI / 2);
-}
+double easeInSine(double t) => 1 - cos(t * pi / 2);
 
-double easeOutSine(double t) {
-  return sin(t * PI / 2);
-}
+double easeOutSine(double t) => sin(t * pi / 2);
 
-double easeInOutSine(double t) {
-  return .5 * (1 - cos(PI * t));
-}
+double easeInOutSine(double t) => .5 * (1 - cos(pi * t));
 
-double easeInExpo(double t) {
-  return (t == 0.0) ? 1.0 : pow(2, 10 * (t - 1));
-}
+double easeInExpo(double t) => (t == 0.0) ? 1.0 : pow(2, 10 * (t - 1));
 
-double easeOutExpo(double t) {
-  return (t == 1.0) ? 1.0 : (1 - pow(2, -10 * t));
-}
+double easeOutExpo(double t) => (t == 1.0) ? 1.0 : (1 - pow(2, -10 * t));
 
 double easeInOutExpo(double t) {
   if (t == 0.0) return 0.0;
   if (t == 1.0) return 1.0;
-  t *= 2;
-  if (t < 1) return 1 / 2 * pow(2, 10 * (t - 1));
-  return .5 * (-pow(2, -10 * --t) + 2);
+
+  var value = t * 2;
+  if (value < 1) return 1 / 2 * pow(2, 10 * (value - 1));
+  return .5 * (-pow(2, -10 * --value) + 2);
 }
 
 double easeInCirc(double t) {
@@ -115,33 +95,32 @@ double easeInCirc(double t) {
   return 1 - sqrt(1 - t * t);
 }
 
-double easeOutCirc(double t) {
-  t--;
-  return sqrt(1 - t * t);
-}
+double easeOutCirc(double t) => sqrt(1 - (t - 1) * t);
 
 double easeInOutCirc(double t) {
-  t *= 2;
-  if (t < 1) return -.5 * (sqrt(1 - t * t) - 1);
-  t -= 2;
-  return .5 * (sqrt(1 - t * t) + 1);
+  var value = t * 2;
+
+  if (value < 1) return -.5 * (sqrt(1 - value * value) - 1);
+  value -= 2;
+  return .5 * (sqrt(1 - value * value) + 1);
 }
 
 double easeInElastic(double t) {
+  var value = t;
   var s = 1.70158;
   var p = 0.0;
   var a = 1.0;
-  if (t == 0) return 0.0;
-  if (t == 1) return 1.0;
+  if (value == 0) return 0.0;
+  if (value == 1) return 1.0;
   if (p == 0) p = 0.3;
   if (a < 1) {
     a = 1.0;
     s = p / 4;
   } else {
-    s = p / (2 * PI) * asin(1 / a);
+    s = p / (2 * pi) * asin(1 / a);
   }
-  t--;
-  return -(a * pow(2, 10 * t) * sin((t - s) * (2 * PI) / p));
+  value--;
+  return -(a * pow(2, 10 * value) * sin((value - s) * (2 * pi) / p));
 }
 
 double easeOutElastic(double t) {
@@ -155,12 +134,13 @@ double easeOutElastic(double t) {
     a = 1.0;
     s = p / 4;
   } else {
-    s = p / (2 * PI) * asin(1 / a);
+    s = p / (2 * pi) * asin(1 / a);
   }
-  return a * pow(2, -10 * t) * sin((t - s) * (2 * PI) / p) + 1;
+  return a * pow(2, -10 * t) * sin((t - s) * (2 * pi) / p) + 1;
 }
 
 double easeInOutElastic(double t) {
+  var value = t;
   var s = 1.70158;
   var p = 0.0;
   var a = 1.0;
@@ -171,11 +151,11 @@ double easeInOutElastic(double t) {
     a = 1.0;
     s = p / 4;
   } else {
-    s = p / (2 * PI) * asin(1 / a);
+    s = p / (2 * pi) * asin(1 / a);
   }
-  t = 2 * t - 1;
-  if (t < 0) return -.5 * (a * pow(2, 10 * t) * sin((t - s) * (2 * PI) / p));
-  return a * pow(2, -10 * t) * sin((t - s) * (2 * PI) / p) * .5 + 1;
+  value = 2 * value - 1;
+  if (value < 0) return -.5 * (a * pow(2, 10 * value) * sin((value - s) * (2 * pi) / p));
+  return a * pow(2, -10 * value) * sin((value - s) * (2 * pi) / p) * .5 + 1;
 }
 
 double easeInBack(double t) {
@@ -184,35 +164,35 @@ double easeInBack(double t) {
 }
 
 double easeOutBack(double t) {
+  var value = t;
   const s = 1.70158;
-  t--;
-  return t * t * ((s + 1) * t + s) + 1;
+  value--;
+  return value * value * ((s + 1) * value + s) + 1;
 }
 
 double easeInOutBack(double t) {
   const s = 1.70158 * 1.525;
-  t *= 2;
-  if (t < 1) return .5 * (t * t * ((s + 1) * t - s));
-  t -= 2;
-  return .5 * (t * t * ((s + 1) * t + s) + 2);
+  var value = t * 2;
+  if (value < 1) return .5 * (value * value * ((s + 1) * value - s));
+  value -= 2;
+  return .5 * (value * value * ((s + 1) * value + s) + 2);
 }
 
-double easeInBounce(double t) {
-  return 1 - easeOutBounce(1 - t);
-}
+double easeInBounce(double t) => 1 - easeOutBounce(1 - t);
 
 double easeOutBounce(double t) {
-  if (t < 1 / 2.75) {
-    return 7.5625 * t * t;
-  } else if (t < 2 / 2.75) {
-    t -= 1.5 / 2.75;
-    return 7.5625 * t * t + .75;
-  } else if (t < 2.5 / 2.75) {
-    t -= 2.25 / 2.75;
-    return 7.5625 * t * t + .9375;
+  var value = t;
+  if (value < 1 / 2.75) {
+    return 7.5625 * value * value;
+  } else if (value < 2 / 2.75) {
+    value -= 1.5 / 2.75;
+    return 7.5625 * value * value + .75;
+  } else if (value < 2.5 / 2.75) {
+    value -= 2.25 / 2.75;
+    return 7.5625 * value * value + .9375;
   } else {
-    t -= 2.625 / 2.75;
-    return 7.5625 * t * t + .984375;
+    value -= 2.625 / 2.75;
+    return 7.5625 * value * value + .984375;
   }
 }
 
@@ -225,7 +205,7 @@ double easeInOutBounce(double t) {
 ///
 /// [name] can be an [EasingFunction] or a [String] specifying the name of one
 /// of the easing functions defined above.
-EasingFunction getEasingFunction(name) {
+EasingFunction getEasingFunction(Object name) {
   if (name is EasingFunction) return name;
   switch (name) {
     case 'linear':
