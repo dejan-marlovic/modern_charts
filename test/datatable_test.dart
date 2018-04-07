@@ -1,12 +1,12 @@
 import 'package:modern_charts/src/datatable.dart';
 
-String toFixedLengthString(obj, int length) {
-  var s = '$obj';
+String toFixedLengthString(Object obj, int length) {
+  final s = '$obj';
   return s + ' ' * (length - s.length);
 }
 
 void printTable(DataTable dt) {
-  var sb = new StringBuffer();
+  final sb = new StringBuffer();
   for (var row in dt.rows) {
     var first = true;
     for (var col in dt.columns) {
@@ -19,12 +19,12 @@ void printTable(DataTable dt) {
   print(sb.toString());
 }
 
-void onChange(record) {
+void onChange(Object record) {
   print(record);
 }
 
 void main() {
-  var dt = new DataTable([
+  final dt = new DataTable([
     ['Browser', 'Share'],
     ['Chrome', 35],
     ['IE', 30],

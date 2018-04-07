@@ -11,6 +11,7 @@ pubspec.lock # (Remove this pattern if you wish to check in your lock file)
 *.js.deps
 *.js.map
 *.info.json
+.dart_tool
 
 # Directory created by dartdoc
 doc/api/

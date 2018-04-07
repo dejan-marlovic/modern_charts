@@ -1,6 +1,6 @@
 part of modern_charts;
 
-final _gaugeChartDefaultOptions = {
+final _gaugeChartDefaultOptions = <String, dynamic>{
   // String - The background color of the gauges.
   'gaugeBackgroundColor': '#dbdbdb',
 
@@ -24,12 +24,12 @@ class _Gauge extends _Pie {
 
   @override
   void draw(CanvasRenderingContext2D ctx, double percent, bool highlight) {
-    var tmpColor = color;
-    var tmpEndAngle = endAngle;
+    final tmpColor = color;
+    final tmpEndAngle = endAngle;
 
     // Draw the background.
 
-    endAngle = startAngle + _2PI;
+    endAngle = startAngle + _2pi;
     color = backgroundColor;
     super.draw(ctx, 1.0, false);
 
@@ -41,19 +41,19 @@ class _Gauge extends _Pie {
 
     // Draw the percent.
 
-    var fs1 = .75 * innerRadius;
-    var font1 = '${fs1}px $_fontFamily';
-    var text1 = lerp(oldValue, value, percent).round().toString();
+    final fs1 = .75 * innerRadius;
+    final font1 = '${fs1}px $_fontFamily';
+    final text1 = lerp(oldValue, value, percent).round().toString();
     ctx.font = font1;
-    var w1 = ctx.measureText(text1).width;
+    final w1 = ctx.measureText(text1).width;
 
-    var fs2 = .6 * fs1;
-    var font2 = '${fs2}px $_fontFamily';
-    var text2 = '%';
+    final fs2 = .6 * fs1;
+    final font2 = '${fs2}px $_fontFamily';
+    final text2 = '%';
     ctx.font = font2;
-    var w2 = ctx.measureText(text2).width;
+    final w2 = ctx.measureText(text2).width;
 
-    var y = center.y + .3 * fs1;
+    final y = center.y + .3 * fs1;
     ctx
       ..font = font1
       ..fillText(text1, center.x - .5 * w2, y)
@@ -68,18 +68,23 @@ class GaugeChart extends Chart {
   num _gaugeInnerRadius;
   num _gaugeOuterRadius;
   num _gaugeCenterY;
-  final num _startAngle = -_PI_2;
+  final num _startAngle = -_pi_2;
+
+  GaugeChart(Element container) : super(container) {
+    _defaultOptions = extendMap(globalOptions, _gaugeChartDefaultOptions);
+    _defaultOptions['legend']['position'] = 'none';
+  }
 
   Point _getGaugeCenter(int index) =>
       new Point((index + .5) * _gaugeHop, _gaugeCenterY);
 
-  num _valueToAngle(num value) => value * _2PI / 100;
+  num _valueToAngle(num value) => value * _2pi / 100;
 
   @override
   void _calculateDrawingSizes() {
     super._calculateDrawingSizes();
 
-    int gaugeCount = _dataTable.rows.length;
+    final gaugeCount = _dataTable.rows.length;
     num labelTotalHeight = 0;
     if (_options['gaugeLabels']['enabled']) {
       labelTotalHeight =
@@ -89,27 +94,27 @@ class GaugeChart extends Chart {
     _gaugeCenterY = _seriesAndAxesBox.top + .5 * _seriesAndAxesBox.height;
     _gaugeHop = _seriesAndAxesBox.width / gaugeCount;
 
-    num availW = .618 * _gaugeHop; // Golden ratio.
-    num availH = _seriesAndAxesBox.height - 2 * labelTotalHeight;
+    final availW = .618 * _gaugeHop; // Golden ratio.
+    final availH = _seriesAndAxesBox.height - 2 * labelTotalHeight;
     _gaugeOuterRadius = .5 * min(availW, availH) / _highlightOuterRadiusFactor;
     _gaugeInnerRadius = .5 * _gaugeOuterRadius;
   }
 
   @override
   bool _drawSeries(double percent) {
-    var style = _options['gaugeLabels']['style'];
-    var labelsEnabled = _options['gaugeLabels']['enabled'];
+    final style = _options['gaugeLabels']['style'];
+    final labelsEnabled = _options['gaugeLabels']['enabled'];
     _seriesContext
       ..strokeStyle = 'white'
       ..textAlign = 'center';
     for (_Gauge gauge in _seriesList[0].entities) {
-      var highlight = gauge.index == _focusedEntityIndex;
+      final highlight = gauge.index == _focusedEntityIndex;
       gauge.draw(_seriesContext, percent, highlight);
 
       if (!labelsEnabled) continue;
 
-      num x = gauge.center.x;
-      num y = gauge.center.y +
+      final x = gauge.center.x;
+      final y = gauge.center.y +
           gauge.outerRadius +
           style['fontSize'] +
           _axisLabelMargin;
@@ -126,10 +131,12 @@ class GaugeChart extends Chart {
   _Entity _createEntity(int seriesIndex, int entityIndex, value, String color,
       String highlightColor) {
     // Override the colors.
+    // ignore: parameter_assignments
     color = _getColor(entityIndex);
+    // ignore: parameter_assignments
     highlightColor = _changeColorAlpha(color, .5);
 
-    var name = _dataTable.rows[entityIndex][0];
+    final name = _dataTable.rows[entityIndex][0];
     return new _Gauge()
       ..index = entityIndex
       ..value = value
@@ -149,11 +156,11 @@ class GaugeChart extends Chart {
 
   @override
   void _updateSeries([int index]) {
-    int n = _dataTable.rows.length;
-    for (int i = 0; i < n; i++) {
-      var gauge = _seriesList[0].entities[i] as _Gauge;
-      var color = _getColor(i);
-      var highlightColor = _changeColorAlpha(color, .5);
+    final n = _dataTable.rows.length;
+    for (var i = 0; i < n; i++) {
+      final gauge = _seriesList[0].entities[i] as _Gauge;
+      final color = _getColor(i);
+      final highlightColor = _changeColorAlpha(color, .5);
       gauge
         ..index = i
         ..name = _dataTable.rows[i][0]
@@ -168,37 +175,34 @@ class GaugeChart extends Chart {
 
   @override
   void _updateTooltipContent() {
-    var gauge = _seriesList[0].entities[_focusedEntityIndex] as _Gauge;
+    final gauge = _seriesList[0].entities[_focusedEntityIndex] as _Gauge;
     _tooltip.style
       ..borderColor = gauge.color
       ..padding = '4px 12px';
-    var label = _tooltipLabelFormatter(gauge.name);
-    var value = _tooltipValueFormatter(gauge.value);
+    final label = _tooltipLabelFormatter(gauge.name);
+    final value = _tooltipValueFormatter(gauge.value);
     _tooltip.innerHtml = '$label: <strong>$value%</strong>';
   }
 
+  /*
   @override
   int _getEntityGroupIndex(num x, num y) {
-    var p = new Point(x, y);
+    final p = new Point(x, y);
     for (_Gauge g in _seriesList[0].entities) {
       if (g.containsPoint(p)) return g.index;
     }
     return -1;
   }
-
+*/
   @override
   Point _getTooltipPosition() {
-    var gauge = _seriesList[0].entities[_focusedEntityIndex] as _Gauge;
-    num x = gauge.center.x - _tooltip.offsetWidth ~/ 2;
-    num y = gauge.center.y -
+    // ignore: avoid_as
+    final gauge = _seriesList[0].entities[_focusedEntityIndex] as _Gauge;
+    final x = gauge.center.x - _tooltip.offsetWidth ~/ 2;
+    final y = gauge.center.y -
         _highlightOuterRadiusFactor * gauge.outerRadius -
         _tooltip.offsetHeight -
         5;
     return new Point(x, y);
-  }
-
-  GaugeChart(Element container) : super(container) {
-    _defaultOptions = extendMap(globalOptions, _gaugeChartDefaultOptions);
-    _defaultOptions['legend']['position'] = 'none';
   }
 }

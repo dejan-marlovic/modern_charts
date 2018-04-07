@@ -1,6 +1,6 @@
 part of modern_charts;
 
-final _lineChartDefaultOptions = {
+final _lineChartDefaultOptions = <String, dynamic>{
   // Map - An object that controls the series.
   'series': {
     // num - The curve tension. The typical value is from 0.3 to 0.5.
@@ -203,26 +203,26 @@ class _Point extends _Entity {
   Point cp2;
 
   num x;
-
   num y;
-
   num pointRadius;
 
   @override
   void draw(CanvasRenderingContext2D ctx, double percent, bool highlight) {
-    num cx = lerp(oldX, x, percent);
-    num cy = lerp(oldY, y, percent);
-    num pr = lerp(oldPointRadius, pointRadius, percent);
+    final cx = lerp(oldX, x, percent);
+    final cy = lerp(oldY, y, percent);
+    final pr = lerp(oldPointRadius, pointRadius, percent);
     if (highlight) {
-      ctx.fillStyle = highlightColor;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 2 * pr, 0, _2PI);
-      ctx.fill();
+      ctx
+        ..fillStyle = highlightColor
+        ..beginPath()
+        ..arc(cx, cy, 2 * pr, 0, _2pi)
+        ..fill();
     }
-    ctx.beginPath();
-    ctx.arc(cx, cy, pr, 0, _2PI);
-    ctx.fill();
-    ctx.stroke();
+    ctx
+      ..beginPath()
+      ..arc(cx, cy, pr, 0, _2pi)
+      ..fill()
+      ..stroke();
   }
 
   @override
@@ -240,25 +240,31 @@ class _Point extends _Entity {
 
 class LineChart extends _TwoAxisChart {
   @override
+  // ignore: overridden_fields
   final num _xLabelOffsetFactor = 0;
+
+  LineChart(Element container) : super(container) {
+    _defaultOptions = extendMap(globalOptions, _lineChartDefaultOptions);
+  }
 
   @override
   void _calculateAverageYValues([int index]) {
     if (!_options['tooltip']['enabled']) return;
 
-    int entityCount = _dataTable.rows.length;
-    int start = index ?? 0;
-    int end = index == null ? entityCount : index + 1;
+    final entityCount = _dataTable.rows.length;
+    final start = index ?? 0;
+    final end = index == null ? entityCount : index + 1;
 
     _averageYValues ??= <num>[];
     _averageYValues.length = entityCount;
 
-    for (int i = start; i < end; i++) {
+    for (var i = start; i < end; i++) {
       num sum = 0.0;
       num count = 0;
-      for (int j = _seriesList.length - 1; j >= 0; j--) {
+      for (var j = _seriesList.length - 1; j >= 0; j--) {
         if (_seriesStates[j].index <= _VisibilityState.hiding.index) continue;
-        var point = _seriesList[j].entities[i] as _Point;
+        // ignore: avoid_as
+        final point = _seriesList[j].entities[i] as _Point;
         if (point.value != null) {
           sum += point.y;
           count++;
@@ -274,27 +280,28 @@ class LineChart extends _TwoAxisChart {
     _tooltipOffset = _options['series']['markers']['size'] * 2 + 5;
   }
 
-  List<_Point> _lerpPoints(List<_Point> points, double percent) {
-    return points.map((p) {
-      num x = lerp(p.oldX, p.x, percent);
-      num y = lerp(p.oldY, p.y, percent);
-      Point<num> cp1 = (p.cp1 != null) ? lerp(p.oldCp1, p.cp1, percent) : null;
-      Point<num> cp2 = (p.cp2 != null) ? lerp(p.oldCp2, p.cp2, percent) : null;
-      return new _Point()
-        ..index = p.index
-        ..value = p.value
-        ..color = p.color
-        ..highlightColor = p.highlightColor
-        ..oldPointRadius = p.oldPointRadius
-        ..oldX = p.oldX
-        ..oldY = p.oldY
-        ..pointRadius = p.pointRadius
-        ..x = x
-        ..y = y
-        ..cp1 = cp1
-        ..cp2 = cp2;
-    }).toList();
-  }
+  List<_Entity> _lerpPoints(List<_Entity> points, double percent) =>
+      points.map((e) {
+        // ignore: avoid_as
+        final p = e as _Point;
+        final x = lerp(p.oldX, p.x, percent);
+        final y = lerp(p.oldY, p.y, percent);
+        final cp1 = (p.cp1 != null) ? lerp(p.oldCp1, p.cp1, percent) : null;
+        final cp2 = (p.cp2 != null) ? lerp(p.oldCp2, p.cp2, percent) : null;
+        return new _Point()
+          ..index = p.index
+          ..value = p.value
+          ..color = p.color
+          ..highlightColor = p.highlightColor
+          ..oldPointRadius = p.oldPointRadius
+          ..oldX = p.oldX
+          ..oldY = p.oldY
+          ..pointRadius = p.pointRadius
+          ..x = x
+          ..y = y
+          ..cp1 = cp1
+          ..cp2 = cp2;
+      }).toList();
 
   @override
   bool _drawSeries(double percent) {
@@ -310,30 +317,32 @@ class LineChart extends _TwoAxisChart {
       }
     }
 
-    int seriesCount = _seriesList.length;
-    int entityCount = _dataTable.rows.length;
-    var fillOpacity = _options['series']['fillOpacity'];
-    var seriesLineWidth = _options['series']['lineWidth'];
-    var markerOptions = _options['series']['markers'];
-    var markerSize = markerOptions['size'];
+    final seriesCount = _seriesList.length;
+    final entityCount = _dataTable.rows.length;
+    final fillOpacity = _options['series']['fillOpacity'];
+    final seriesLineWidth = _options['series']['lineWidth'];
+    final markerOptions = _options['series']['markers'];
+    final markerSize = markerOptions['size'];
 
-    for (int i = 0; i < seriesCount; i++) {
+    for (var i = 0; i < seriesCount; i++) {
       if (_seriesStates[i] == _VisibilityState.hidden) continue;
 
-      var series = _seriesList[i];
-      var points = _lerpPoints(series.entities, percent);
-      int scale = (i != _focusedSeriesIndex) ? 1 : 2;
+      final series = _seriesList[i];
+      final points = _lerpPoints(series.entities, percent);
+      final scale = (i != _focusedSeriesIndex) ? 1 : 2;
 
       _seriesContext.lineJoin = 'round';
 
       // Draw series with filling.
 
       if (fillOpacity > 0.0) {
-        var color = _changeColorAlpha(series.color, fillOpacity);
-        _seriesContext.fillStyle = color;
-        _seriesContext.strokeStyle = color;
-        int j = 0;
-        while (true) {
+        final color = _changeColorAlpha(series.color, fillOpacity);
+        _seriesContext
+          ..fillStyle = color
+          ..strokeStyle = color;
+        var j = 0;
+        final condition = true;
+        while (condition) {
           // Skip points with a null value.
           while (j < entityCount && points[j].value == null) j++;
 
@@ -342,13 +351,13 @@ class LineChart extends _TwoAxisChart {
 
           // Connect a series of contiguous points with a non-null value and
           // fill the area between them and the x-axis.
-          var p = points[j];
+          var p = points[j] as _Point;
           _seriesContext
             ..beginPath()
             ..moveTo(p.x, _xAxisTop)
             ..lineTo(p.x, p.y);
           var lastPoint = p;
-          int count = 1;
+          var count = 1;
           while (++j < entityCount && points[j].value != null) {
             p = points[j];
             curveTo(lastPoint.cp2, p.cp1, p);
@@ -372,7 +381,9 @@ class LineChart extends _TwoAxisChart {
           ..lineWidth = scale * seriesLineWidth
           ..strokeStyle = series.color
           ..beginPath();
-        for (var p in points) {
+        for (var e in points) {
+          // ignore: avoid_as
+          final p = e as _Point;
           if (p.value != null) {
             if (lastPoint.value != null) {
               curveTo(lastPoint.cp2, p.cp1, p);
@@ -388,8 +399,8 @@ class LineChart extends _TwoAxisChart {
       // Draw markers.
 
       if (markerSize > 0) {
-        var fillColor = markerOptions['fillColor'] ?? series.color;
-        var strokeColor = markerOptions['strokeColor'] ?? series.color;
+        final fillColor = markerOptions['fillColor'] ?? series.color;
+        final strokeColor = markerOptions['strokeColor'] ?? series.color;
         _seriesContext
           ..fillStyle = fillColor
           ..lineWidth = scale * markerOptions['lineWidth']
@@ -409,23 +420,26 @@ class LineChart extends _TwoAxisChart {
 
     // Draw labels only on the last frame.
 
-    var labelOptions = _options['series']['labels'];
+    final labelOptions = _options['series']['labels'];
     if (percent == 1.0 && labelOptions['enabled']) {
       _seriesContext
         ..fillStyle = labelOptions['style']['color']
         ..font = _getFont(labelOptions['style'])
         ..textAlign = 'center'
         ..textBaseline = 'alphabetic';
-      for (int i = 0; i < seriesCount; i++) {
-        if (_seriesStates[i] != _VisibilityState.shown) continue;
+      //for (var i = 0; i < seriesCount; i++) {
+      var i = 0;
+      for (var series in _seriesStates) {
+        if (series != _VisibilityState.shown) continue;
 
-        var points = _seriesList[i].entities as List<_Point>;
+        final points = _seriesList[i].entities as List<_Point>;
         for (var p in points) {
           if (p.value != null) {
-            num y = p.y - markerSize - 5;
+            final y = p.y - markerSize - 5;
             _seriesContext.fillText(p.formattedValue, p.x, y);
           }
         }
+        i++;
       }
     }
 
@@ -435,8 +449,8 @@ class LineChart extends _TwoAxisChart {
   @override
   _Entity _createEntity(int seriesIndex, int entityIndex, value, String color,
       String highlightColor) {
-    num x = _xLabelX(entityIndex);
-    num oldY = _xAxisTop;
+    final x = _xLabelX(entityIndex);
+    final oldY = _xAxisTop;
     // oldCp1 and oldCp2 are calculated in [_updateSeries].
     return new _Point()
       ..index = entityIndex
@@ -454,50 +468,53 @@ class LineChart extends _TwoAxisChart {
 
   @override
   void _updateSeries([int index]) {
-    int entityCount = _dataTable.rows.length;
-    var markerSize = _options['series']['markers']['size'];
-    var curveTension = _options['series']['curveTension'];
-    var curve = curveTension > 0 && entityCount > 2;
+    final entityCount = _dataTable.rows.length;
+    final markerSize = _options['series']['markers']['size'];
+    final curveTension = _options['series']['curveTension'];
+    final curve = curveTension > 0 && entityCount > 2;
 
-    int start = index ?? 0;
-    int end = (index == null) ? _seriesList.length : index + 1;
-    for (int i = start; i < end; i++) {
-      var visible = _seriesStates[i].index >= _VisibilityState.showing.index;
-      var series = _seriesList[i];
-      var entities = series.entities;
-      var color = _getColor(i);
-      var highlightColor = _getHighlightColor(color);
-      series.color = color;
-      series.highlightColor = highlightColor;
+    final start = index ?? 0;
+    final end = (index == null) ? _seriesList.length : index + 1;
+    for (var i = start; i < end; i++) {
+      final visible = _seriesStates[i].index >= _VisibilityState.showing.index;
+      final series = _seriesList[i];
+      final entities = series.entities;
+      final color = _getColor(i);
+      final highlightColor = _getHighlightColor(color);
+      series
+        ..color = color
+        ..highlightColor = highlightColor;
 
-      for (int j = 0; j < entityCount; j++) {
-        var e = entities[j] as _Point;
-        e.index = j;
-        e.color = color;
-        e.highlightColor = highlightColor;
-        e.x = _xLabelX(j);
-        e.y = visible ? _valueToY(e.value) : _xAxisTop;
-        e.pointRadius = visible ? markerSize : 0;
+      for (var j = 0; j < entityCount; j++) {
+        // ignore: avoid_as
+        final e = (entities[j] as _Point)
+          ..index = j
+          ..color = color
+          ..highlightColor = highlightColor
+          ..x = _xLabelX(j)
+          ..pointRadius = visible ? markerSize : 0;
+
+          e.y = visible ? _valueToY(e.value) : _xAxisTop;
       }
 
       if (!curve) continue;
 
-      var e1;
-      var e2 = entities[0] as _Point;
-      var e3 = entities[1] as _Point;
-      for (int j = 2; j < entityCount; j++) {
-        e1 = e2;
+      var e2 = entities[0] as _Point; // ignore: avoid_as
+      var e3 = entities[1] as _Point; // ignore: avoid_as
+      for (var j = 2; j < entityCount; j++) {
+        final e1 = e2;
         e2 = e3;
         e3 = entities[j];
         if (e1.value == null) continue;
         if (e2.value == null) continue;
         if (e3.value == null) continue;
-        var list = calculateControlPoints(
+        final list = calculateControlPoints(
             e1.asPoint, e2.asPoint, e3.asPoint, curveTension);
-        e2.cp1 = list[0];
-        e2.cp2 = list[1];
-        e2.oldCp1 ??= new Point(e2.cp1.x, _xAxisTop);
-        e2.oldCp2 ??= new Point(e2.cp2.x, _xAxisTop);
+        e2
+          ..cp1 = list[0]
+          ..cp2 = list[1]
+          ..oldCp1 ??= new Point(e2.cp1.x, _xAxisTop)
+          ..oldCp2 ??= new Point(e2.cp2.x, _xAxisTop);
       }
     }
   }
@@ -506,9 +523,5 @@ class LineChart extends _TwoAxisChart {
   void _seriesVisibilityChanged(int index) {
     _updateSeries(index);
     _calculateAverageYValues();
-  }
-
-  LineChart(Element container) : super(container) {
-    _defaultOptions = extendMap(globalOptions, _lineChartDefaultOptions);
   }
 }
