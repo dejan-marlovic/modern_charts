@@ -15,7 +15,7 @@ void _windowResize(_) {
 }
 
 /// The global drawing options.
-final globalOptions = {
+final Map<String, dynamic> globalOptions = <String, dynamic>{
   // Map - An object that controls the animation.
   'animation': {
     // num - The animation duration in ms.
@@ -119,11 +119,13 @@ final globalOptions = {
   }
 };
 
-/// The 2*PI constant.
-const _2PI = 2 * PI;
+/// The 2*pi constant.
+// ignore: constant_identifier_names
+const _2pi = 2 * pi;
 
-/// The PI/2 constant.
-const _PI_2 = PI / 2;
+/// The pi/2 constant.
+// ignore: constant_identifier_names
+const _pi_2 = pi / 2;
 
 const _fontFamily = '"Segoe UI", "Open Sans", Verdana, Arial';
 
@@ -150,11 +152,11 @@ const _axisLabelMargin = 12;
 
 typedef String LabelFormatter(String label);
 
-typedef String ValueFormatter(value);
+typedef String ValueFormatter(Object value);
 
 String _defaultLabelFormatter(String label) => label;
 
-String _defaultValueFormatter(value) => '$value';
+String _defaultValueFormatter(Object value) => '$value';
 
 enum _VisibilityState { hidden, hiding, showing, shown }
 
@@ -187,10 +189,11 @@ class _Series {
   List<_Entity> entities;
 
   void freeEntities(int start, [int end]) {
+    var s = start;
     end ??= entities.length;
-    while (start < end) {
-      entities[start].free();
-      start++;
+    while (s < end) {
+      entities[s].free();
+      s++;
     }
   }
 }
@@ -216,10 +219,10 @@ class Chart {
   EasingFunction _easingFunction;
 
   /// The default drawing options initialized in the constructor.
-  Map _defaultOptions;
+  Map<String, dynamic> _defaultOptions;
 
   /// The drawing options.
-  Map _options;
+  Map<String, dynamic> _options;
 
   /// The chart's width.
   int _height;
@@ -238,10 +241,10 @@ class Chart {
   Element _legend;
 
   /// The subscription tracker for legend items' events.
-  StreamSubscriptionTracker _legendItemSubscriptionTracker =
-      new StreamSubscriptionTracker();
+  final _legendItemSubscriptionTracker = new StreamSubscriptionTracker();
 
   StreamSubscription _mouseMoveSub;
+  StreamSubscription _windowResizeSub;
 
   /// The tooltip element. To position the tooltip, change its transform CSS.
   Element _tooltip;
@@ -276,20 +279,40 @@ class Chart {
   /// The color cache used by [_changeColorAlpha].
   static final _colorCache = <String, String>{};
 
-  /// Creates a new color by combining the R, G, B components of [color] with
-  /// [alpha].
+  /// Creates a chart given a container.
+  ///
+  /// If the CSS position of [container] is 'static', it will be changed to
+  /// 'relative'.
+  Chart(this.container) {
+    if (container.getComputedStyle().position == 'static') {
+      container.style.position = 'relative';
+    }
+    _context = new CanvasElement().getContext('2d');
+    _axesContext = new CanvasElement().getContext('2d');
+    _seriesContext = new CanvasElement().getContext('2d');
+
+    container.append(_context.canvas);
+
+    if (_instances == null) {
+      _instances = new Set<Chart>();
+      _windowResizeSub = window.onResize.listen(_windowResize);
+    }
+    _instances.add(this);
+  }
+
   String _changeColorAlpha(String color, num alpha) {
-    var key = '$color$alpha';
+    final key = '$color$alpha';
     var result = _colorCache[key];
     if (result == null) {
       // Convert [color] to HEX/RGBA format using [_context].
       _context.fillStyle = color;
+      // ignore: parameter_assignments
       color = _context.fillStyle;
 
       if (color[0] == '#') {
         result = hexToRgba(color, alpha);
       } else {
-        var list = color.split(',');
+        final list = color.split(',');
         list[list.length - 1] = '$alpha)';
         result = list.join(',');
       }
@@ -309,7 +332,7 @@ class Chart {
   }
 
   String _getColor(int index) {
-    var colors = _options['colors'] as List<String>;
+    final colors = _options['colors'];
     return colors[index % colors.length];
   }
 
@@ -330,7 +353,7 @@ class Chart {
       }
     }
 
-    var callback = _options['animation']['onEnd'];
+    final callback = _options['animation']['onEnd'];
     if (callback != null) callback();
   }
 
@@ -341,11 +364,11 @@ class Chart {
   ///
   /// To be overridden.
   void _calculateDrawingSizes() {
-    var title = _options['title'];
-    var titleX = 0;
-    var titleY = 0;
-    var titleW = 0;
-    var titleH = 0;
+    final title = _options['title'];
+    num titleX = 0;
+    num titleY = 0;
+    num titleW = 0;
+    num titleH = 0;
     if (title['position'] != 'none' && title['text'] != null) {
       titleH = title['style']['fontSize'] + 2 * _titlePadding;
     }
@@ -379,8 +402,8 @@ class Chart {
     // Consider the legend.
 
     if (_legend != null) {
-      var lwm = _legend.offsetWidth + _legendMargin;
-      var lhm = _legend.offsetHeight + _legendMargin;
+      final lwm = _legend.offsetWidth + _legendMargin;
+      final lhm = _legend.offsetHeight + _legendMargin;
       switch (_options['legend']['position']) {
         case 'right':
           _seriesAndAxesBox.width -= lwm;
@@ -402,13 +425,14 @@ class Chart {
 
   List<_Entity> _createEntities(int seriesIndex, int start, int end,
       String color, String highlightColor) {
-    var result = [];
-    while (start < end) {
-      var value = _dataTable.rows[start][seriesIndex + 1];
-      var e = _createEntity(seriesIndex, start, value, color, highlightColor);
-      e.chart = this;
+    var s = start;
+    final result = <_Entity>[];
+    while (s < end) {
+      final value = _dataTable.rows[s][seriesIndex + 1];
+      final e = _createEntity(seriesIndex, s, value, color, highlightColor)
+        ..chart = this;
       result.add(e);
-      start++;
+      s++;
     }
     return result;
   }
@@ -418,26 +442,24 @@ class Chart {
       null;
 
   List<_Series> _createSeriesList(int start, int end) {
-    var result = <_Series>[];
-    var entityCount = _dataTable.rows.length;
-    while (start < end) {
-      var name = _dataTable.columns[start + 1].name;
-      var color = _getColor(start);
-      var highlightColor = _getHighlightColor(color);
-      var entities =
-          _createEntities(start, 0, entityCount, color, highlightColor);
+    final result = <_Series>[];
+    var s = start;
+    final entityCount = _dataTable.rows.length;
+    while (s < end) {
+      final name = _dataTable.columns[s + 1].name;
+      final color = _getColor(s);
+      final highlightColor = _getHighlightColor(color);
+      final entities =
+          _createEntities(s, 0, entityCount, color, highlightColor);
       result.add(new _Series(name, color, highlightColor, entities));
-      start++;
+      s++;
     }
     return result;
   }
 
-  /// Event handler for [DataTable.onCellChanged].
-  ///
-  /// NOTE: This method only handles the case when [record.columnIndex] >= 1;
   void _dataCellChanged(DataCellChangeRecord record) {
     if (record.columnIndex >= 1) {
-      var f = _entityValueFormatter != null && record.newValue != null
+      final f = _entityValueFormatter != null && record.newValue != null
           ? _entityValueFormatter(record.newValue)
           : null;
       _seriesList[record.columnIndex - 1].entities[record.rowIndex]
@@ -446,14 +468,13 @@ class Chart {
     }
   }
 
-  /// Event handler for [DataTable.onRowsChanged].
   void _dataRowsChanged(DataCollectionChangeRecord record) {
     _calculateDrawingSizes();
-    var entityCount = _dataTable.rows.length;
-    var removedEnd = record.index + record.removedCount;
-    var addedEnd = record.index + record.addedCount;
+    final entityCount = _dataTable.rows.length;
+    final removedEnd = record.index + record.removedCount;
+    final addedEnd = record.index + record.addedCount;
     for (var i = 0; i < _seriesList.length; i++) {
-      var series = _seriesList[i];
+      final series = _seriesList[i];
 
       // Remove old entities.
       if (record.removedCount > 0) {
@@ -463,7 +484,7 @@ class Chart {
 
       // Insert new entities.
       if (record.addedCount > 0) {
-        var newEntities = _createEntities(
+        final newEntities = _createEntities(
             i, record.index, addedEnd, series.color, series.highlightColor);
         series.entities.insertAll(record.index, newEntities);
 
@@ -475,20 +496,19 @@ class Chart {
     }
   }
 
-  /// Event handler for [DataTable.onColumnsChanged].
   void _dataColumnsChanged(DataCollectionChangeRecord record) {
     _calculateDrawingSizes();
-    var start = record.index - 1;
+    final start = record.index - 1;
     _updateSeriesVisible(start, record.removedCount, record.addedCount);
     if (record.removedCount > 0) {
-      var end = start + record.removedCount;
+      final end = start + record.removedCount;
       for (var i = start; i < end; i++) {
         _seriesList[i].freeEntities(0);
       }
       _seriesList.removeRange(start, end);
     }
     if (record.addedCount > 0) {
-      var list = _createSeriesList(start, start + record.addedCount);
+      final list = _createSeriesList(start, start + record.addedCount);
       _seriesList.insertAll(start, list);
     }
     _updateLegendContent();
@@ -513,7 +533,8 @@ class Chart {
       _seriesStates.removeRange(index, index + removedCount);
     }
     if (addedCount > 0) {
-      var list = new List.filled(addedCount, _VisibilityState.showing);
+      final list = new List<_VisibilityState>.filled(
+          addedCount, _VisibilityState.showing);
       _seriesStates.insertAll(index, list);
     }
   }
@@ -539,9 +560,9 @@ class Chart {
   /// Draws the current animation frame.
   ///
   /// If [time] is `null`, draws the last frame.
-  void _drawFrame(double time) {
+  void _drawFrame(num time) {
     var percent = 1.0;
-    var duration = _options['animation']['duration'];
+    final duration = _options['animation']['duration'];
     _animationStartTime ??= time;
     if (duration > 0 && time != null) {
       percent = (time - _animationStartTime) / duration;
@@ -560,12 +581,14 @@ class Chart {
       }
     }
 
-    _context.fillStyle = _options['backgroundColor'];
-    _context.fillRect(0, 0, _width, _height);
+    _context
+      ..fillStyle = _options['backgroundColor']
+      ..fillRect(0, 0, _width, _height);
     _seriesContext.clearRect(0, 0, _width, _height);
     _drawSeries(_easingFunction(percent));
-    _context.drawImageScaled(_axesContext.canvas, 0, 0, _width, _height);
-    _context.drawImageScaled(_seriesContext.canvas, 0, 0, _width, _height);
+    _context
+      ..drawImageScaled(_axesContext.canvas, 0, 0, _width, _height)
+      ..drawImageScaled(_seriesContext.canvas, 0, 0, _width, _height);
     _drawTitle();
 
     if (percent < 1.0) {
@@ -577,11 +600,11 @@ class Chart {
 
   /// Draws the chart title using the main rendering context.
   void _drawTitle() {
-    var title = _options['title'];
+    final title = _options['title'];
     if (title['text'] == null) return;
 
-    var x = (_titleBox.left + _titleBox.right) ~/ 2;
-    var y = _titleBox.bottom - _titlePadding;
+    final x = (_titleBox.left + _titleBox.right) ~/ 2;
+    final y = _titleBox.bottom - _titlePadding;
     _context
       ..font = _getFont(title['style'])
       ..fillStyle = title['style']['color']
@@ -590,7 +613,7 @@ class Chart {
   }
 
   void _initializeLegend() {
-    var n = _getLegendLabels().length;
+    final n = _getLegendLabels().length;
     _seriesStates = new List<_VisibilityState>.filled(
         n, _VisibilityState.showing,
         growable: true);
@@ -613,7 +636,7 @@ class Chart {
   void _positionLegend() {
     if (_legend == null) return;
 
-    var s = _legend.style;
+    final s = _legend.style;
     switch (_options['legend']['position']) {
       case 'right':
         s.right = '${_chartPadding}px';
@@ -621,7 +644,7 @@ class Chart {
         s.transform = 'translateY(-50%)';
         break;
       case 'bottom':
-        var bottom = _chartPadding;
+        num bottom = _chartPadding;
         if (_options['title']['position'] == 'below' && _titleBox.height > 0) {
           bottom += _titleBox.height;
         }
@@ -635,7 +658,7 @@ class Chart {
         s.transform = 'translateY(-50%)';
         break;
       case 'top':
-        var top = _chartPadding;
+        num top = _chartPadding;
         if (_options['title']['position'] == 'above' && _titleBox.height > 0) {
           top += _titleBox.height;
         }
@@ -647,26 +670,27 @@ class Chart {
   }
 
   void _updateLegendContent() {
-    var labels = _getLegendLabels();
-    var formatter =
+    final labels = _getLegendLabels();
+    final formatter =
         _options['legend']['labelFormatter'] ?? _defaultLabelFormatter;
     _legendItemSubscriptionTracker.clear();
     _legend.innerHtml = '';
     for (var i = 0; i < labels.length; i++) {
-      var label = labels[i];
-      var formattedLabel = formatter(label);
-      var e = _createTooltipOrLegendItem(_getColor(i), formattedLabel);
+      final label = labels[i];
+      final formattedLabel = formatter(label);
+      final e = _createTooltipOrLegendItem(_getColor(i), formattedLabel);
       if (label != formattedLabel) {
         e.title = label;
       }
-      e.style.cursor = 'pointer';
-      e.style.userSelect = 'none';
+      e
+        ..style.cursor = 'pointer'
+        ..style.userSelect = 'none';
       _legendItemSubscriptionTracker
         ..add(e.onClick, _legendItemClick)
         ..add(e.onMouseOver, _legendItemMouseOver)
         ..add(e.onMouseOut, _legendItemMouseOut);
 
-      var state = _seriesStates[i];
+      final state = _seriesStates[i];
       if (state == _VisibilityState.hidden ||
           state == _VisibilityState.hiding) {
         e.style.opacity = '.4';
@@ -674,7 +698,7 @@ class Chart {
 
       // Display the items in one row if the legend's position is 'top' or
       // 'bottom'.
-      var pos = _options['legend']['position'];
+      final pos = _options['legend']['position'];
       if (pos == 'top' || pos == 'bottom') {
         e.style.display = 'inline-block';
       }
@@ -688,8 +712,8 @@ class Chart {
   void _legendItemClick(MouseEvent e) {
     if (animating) return;
 
-    var item = e.currentTarget as Element;
-    var index = item.parent.children.indexOf(item);
+    final item = e.currentTarget as Element;
+    final index = item.parent.children.indexOf(item);
 
     if (_seriesStates[index] == _VisibilityState.shown) {
       _seriesStates[index] = _VisibilityState.hiding;
@@ -705,7 +729,7 @@ class Chart {
 
   void _legendItemMouseOver(MouseEvent e) {
     if (animating) return;
-    var item = e.currentTarget as Element;
+    final item = e.currentTarget as Element;
     _focusedSeriesIndex = item.parent.children.indexOf(item);
     _drawFrame(null);
   }
@@ -727,17 +751,17 @@ class Chart {
   /// specified by [x] and [y].
   ///
   /// To be overridden.
-  int _getEntityGroupIndex(num x, num y) => -1;
+  int _getEntityGroupindex(num x, num y) => -1;
 
   /// Handles `mousemove` or `touchstart` events to highlight appropriate
   /// points/bars/pies/... as well as update the tooltip.
   void _mouseMove(MouseEvent e) {
     if (animating || e.buttons != 0) return;
 
-    var rect = _context.canvas.getBoundingClientRect();
-    var x = e.client.x - rect.left;
-    var y = e.client.y - rect.top;
-    var index = _getEntityGroupIndex(x, y);
+    final rect = _context.canvas.getBoundingClientRect();
+    final x = e.client.x - rect.left;
+    final y = e.client.y - rect.top;
+    final index = _getEntityGroupindex(x, y);
 
     if (index != _focusedEntityIndex) {
       _focusedEntityIndex = index;
@@ -745,7 +769,7 @@ class Chart {
       if (index >= 0) {
         _updateTooltipContent();
         _tooltip.hidden = false;
-        var p = _getTooltipPosition();
+        final p = _getTooltipPosition();
         _tooltip.style.transform = 'translate(${p.x}px, ${p.y}px)';
       } else {
         _tooltip.hidden = true;
@@ -759,7 +783,7 @@ class Chart {
       _tooltip = null;
     }
 
-    var opt = _options['tooltip'];
+    final opt = _options['tooltip'];
     if (!opt['enabled']) return;
 
     _tooltipLabelFormatter = opt['labelFormatter'] ?? _defaultLabelFormatter;
@@ -781,51 +805,48 @@ class Chart {
   Point _getTooltipPosition() => null;
 
   void _updateTooltipContent() {
-    var columnCount = _dataTable.columns.length;
-    var row = _dataTable.rows[_focusedEntityIndex];
-    _tooltip.innerHtml = '';
-
-    // Tooltip title.
-    _tooltip.append(new DivElement()
-      ..text = row[0]
-      ..style.padding = '4px 12px'
-      ..style.fontWeight = 'bold');
+    final columnCount = _dataTable.columns.length;
+    final row = _dataTable.rows[_focusedEntityIndex];
+    _tooltip
+      ..innerHtml = ''
+      ..append(new DivElement()
+        ..text = row[0]
+        ..style.padding = '4px 12px'
+        ..style.fontWeight = 'bold');
 
     // Tooltip items.
     for (var i = 1; i < columnCount; i++) {
-      var state = _seriesStates[i - 1];
+      final state = _seriesStates[i - 1];
       if (state == _VisibilityState.hidden) continue;
       if (state == _VisibilityState.hiding) continue;
 
-      var series = _seriesList[i - 1];
+      final series = _seriesList[i - 1];
       var value = row[i];
       if (value == null) continue;
 
       value = _tooltipValueFormatter(value);
-      var label = _tooltipLabelFormatter(series.name);
+      final label = _tooltipLabelFormatter(series.name);
 
-      var e = _createTooltipOrLegendItem(
+      final e = _createTooltipOrLegendItem(
           series.color, '$label: <strong>$value</strong>');
       _tooltip.append(e);
     }
   }
 
   /// Creates an absolute positioned div with styles specified by [style].
-  Element _createTooltipOrLegend(Map style) {
-    return new DivElement()
-      ..style.backgroundColor = style['backgroundColor']
-      ..style.borderColor = style['borderColor']
-      ..style.borderStyle = 'solid'
-      ..style.borderWidth = '${style['borderWidth']}px'
-      ..style.color = style['color']
-      ..style.fontFamily = style['fontFamily']
-      ..style.fontSize = '${style['fontSize']}px'
-      ..style.fontStyle = style['fontStyle']
-      ..style.position = 'absolute';
-  }
+  Element _createTooltipOrLegend(Map style) => new DivElement()
+    ..style.backgroundColor = style['backgroundColor']
+    ..style.borderColor = style['borderColor']
+    ..style.borderStyle = 'solid'
+    ..style.borderWidth = '${style['borderWidth']}px'
+    ..style.color = style['color']
+    ..style.fontFamily = style['fontFamily']
+    ..style.fontSize = '${style['fontSize']}px'
+    ..style.fontStyle = style['fontStyle']
+    ..style.position = 'absolute';
 
   Element _createTooltipOrLegendItem(String color, String text) {
-    var e = new DivElement()
+    final e = new DivElement()
       ..innerHtml = '<span></span> $text'
       ..style.padding = '4px 12px';
     e.children.first.style
@@ -848,27 +869,6 @@ class Chart {
     }
   }
 
-  /// Creates a chart given a container.
-  ///
-  /// If the CSS position of [container] is 'static', it will be changed to
-  /// 'relative'.
-  Chart(this.container) {
-    if (container.getComputedStyle().position == 'static') {
-      container.style.position = 'relative';
-    }
-    _context = new CanvasElement().getContext('2d');
-    _axesContext = new CanvasElement().getContext('2d');
-    _seriesContext = new CanvasElement().getContext('2d');
-
-    container.append(_context.canvas);
-
-    if (_instances == null) {
-      _instances = new Set<Chart>();
-      window.onResize.listen(_windowResize);
-    }
-    _instances.add(this);
-  }
-
   /// Whether the chart is animating.
   bool get animating => _animationStartTime != null;
 
@@ -877,6 +877,11 @@ class Chart {
 
   /// The data table that stores chart data.
   DataTable get dataTable => _dataTable;
+
+  void free() {
+    _windowResizeSub?.cancel();
+    _mouseMoveSub?.cancel();
+  }
 
   /// Draws the chart given a data table [dataTable] and an optional set of
   /// options [options].
@@ -892,6 +897,8 @@ class Chart {
         dataTable.onColumnsChange.listen(_dataColumnsChanged);
     _dataRowsChangeSub = dataTable.onRowsChange.listen(_dataRowsChanged);
     _options = mergeMap(options, _defaultOptions);
+    _options ??= _defaultOptions;
+
     _easingFunction = getEasingFunction(_options['animation']['easing']);
     _initializeLegend();
     _initializeTooltip();
@@ -902,17 +909,18 @@ class Chart {
   ///
   /// This method is automatically called when the browser window is resized.
   void resize([bool forceRedraw = false]) {
-    var w = container.clientWidth;
-    var h = container.clientHeight;
+    final w = container.clientWidth;
+    final h = container.clientHeight;
 
     if (w != _width || h != _height) {
       _width = w;
       _height = h;
+      // ignore: parameter_assignments
       forceRedraw = true;
 
-      var dpr = window.devicePixelRatio;
-      var scaledW = (w * dpr).round();
-      var scaledH = (h * dpr).round();
+      final dpr = window.devicePixelRatio;
+      final scaledW = (w * dpr).round();
+      final scaledH = (h * dpr).round();
 
       void setCanvasSize(CanvasRenderingContext2D ctx) {
         // Scale the drawing canvas by [dpr] to ensure sharp rendering on
@@ -985,12 +993,12 @@ class _TwoAxisChart extends Chart {
 
   final num _xLabelOffsetFactor = .5;
 
+  _TwoAxisChart(Element container) : super(container);
+
   /// Returns the x coordinate of the x-axis label at [index].
   num _xLabelX(int index) =>
       _yAxisLeft + _xLabelHop * (index + _xLabelOffsetFactor);
 
-  /// Returns the y-coordinate corresponding to the data point [value] and
-  /// the animation percent [percent].
   num _valueToY(num value) => value != null
       ? _xAxisTop - (value - _yMinValue) / _yRange * _yAxisLength
       : _xAxisTop;
@@ -1011,16 +1019,16 @@ class _TwoAxisChart extends Chart {
 
     // y-axis min-max.
 
-    _yMaxValue = _options['yAxis']['maxValue'] ?? double.NEGATIVE_INFINITY;
+    _yMaxValue = _options['yAxis']['maxValue'] ?? double.negativeInfinity;
     _yMaxValue = max(_yMaxValue, findMaxValue(_dataTable));
-    if (_yMaxValue == double.NEGATIVE_INFINITY) _yMaxValue = 0.0;
+    if (_yMaxValue == double.negativeInfinity) _yMaxValue = 0.0;
 
-    _yMinValue = _options['yAxis']['minValue'] ?? double.INFINITY;
+    _yMinValue = _options['yAxis']['minValue'] ?? double.infinity;
     _yMinValue = min(_yMinValue, findMinValue(_dataTable));
-    if (_yMinValue == double.INFINITY) _yMinValue = 0.0;
+    if (_yMinValue == double.infinity) _yMinValue = 0.0;
 
     _yInterval = _options['yAxis']['interval'];
-    var minInterval = _options['yAxis']['minInterval'];
+    final minInterval = _options['yAxis']['minInterval'];
 
     if (_yInterval == null) {
       if (_yMinValue == _yMaxValue) {
@@ -1052,9 +1060,9 @@ class _TwoAxisChart extends Chart {
     _yLabels = <String>[];
     _yLabelFormatter = _options['yAxis']['labels']['formatter'];
     if (_yLabelFormatter == null) {
-      var maxDecimalPlaces =
+      final maxDecimalPlaces =
           max(getDecimalPlaces(_yInterval), getDecimalPlaces(_yMinValue));
-      var numberFormat = new NumberFormat.decimalPattern()
+      final numberFormat = new NumberFormat.decimalPattern()
         ..maximumFractionDigits = maxDecimalPlaces
         ..minimumFractionDigits = maxDecimalPlaces;
       _yLabelFormatter = numberFormat.format;
@@ -1077,11 +1085,11 @@ class _TwoAxisChart extends Chart {
 
     // x-axis title.
 
-    var xTitleLeft = 0;
-    var xTitleTop = 0;
-    var xTitleWidth = 0;
-    var xTitleHeight = 0;
-    var xTitle = _options['xAxis']['title'];
+    num xTitleLeft = 0;
+    num xTitleTop = 0;
+    num xTitleWidth = 0;
+    num xTitleHeight = 0;
+    final xTitle = _options['xAxis']['title'];
     if (xTitle['text'] != null) {
       _context.font = _getFont(xTitle['style']);
       xTitleWidth = _context.measureText(xTitle['text']).width.round() +
@@ -1092,11 +1100,11 @@ class _TwoAxisChart extends Chart {
 
     // y-axis title.
 
-    var yTitleLeft = 0;
-    var yTitleTop = 0;
-    var yTitleWidth = 0;
-    var yTitleHeight = 0;
-    var yTitle = _options['yAxis']['title'];
+    num yTitleLeft = 0;
+    num yTitleTop = 0;
+    num yTitleWidth = 0;
+    num yTitleHeight = 0;
+    final yTitle = _options['yAxis']['title'];
     if (yTitle['text'] != null) {
       _context.font = _getFont(yTitle['style']);
       yTitleHeight = _context.measureText(yTitle['text']).width.round() +
@@ -1139,21 +1147,21 @@ class _TwoAxisChart extends Chart {
     }
     _xLabelRotation = 0;
 
-    var fontSize = _options['xAxis']['labels']['style']['fontSize'];
-    var maxRotation = _options['xAxis']['labels']['maxRotation'];
-    var minRotation = _options['xAxis']['labels']['minRotation'];
+    final fontSize = _options['xAxis']['labels']['style']['fontSize'];
+    final maxRotation = _options['xAxis']['labels']['maxRotation'];
+    final minRotation = _options['xAxis']['labels']['minRotation'];
     const angles = const [0, -45, 45, -90, 90];
 
     outer:
     for (var step = 1; step <= _xLabels.length; step++) {
-      var scaledLabelHop = step * _xLabelHop;
-      var minSpacing = max(.1 * scaledLabelHop, 10);
+      final scaledLabelHop = step * _xLabelHop;
+      final minSpacing = max(.1 * scaledLabelHop, 10);
       for (var angle in angles) {
         if (angle > maxRotation) continue;
         if (angle < minRotation) continue;
 
-        var absAngleRad = deg2rad(angle).abs();
-        var labelSpacing = angle == 0
+        final absAngleRad = deg2rad(angle).abs();
+        final labelSpacing = angle == 0
             ? scaledLabelHop - _xLabelMaxWidth
             : scaledLabelHop * sin(absAngleRad) - fontSize;
         if (labelSpacing < minSpacing) continue;
@@ -1211,7 +1219,7 @@ class _TwoAxisChart extends Chart {
     // x-axis title.
 
     if (_xTitleCenter != null) {
-      var opt = _options['xAxis']['title'];
+      final opt = _options['xAxis']['title'];
       _axesContext
         ..fillStyle = opt['style']['color']
         ..font = _getFont(opt['style'])
@@ -1223,13 +1231,13 @@ class _TwoAxisChart extends Chart {
     // y-axis title.
 
     if (_yTitleCenter != null) {
-      var opt = _options['yAxis']['title'];
+      final opt = _options['yAxis']['title'];
       _axesContext
         ..save()
         ..fillStyle = opt['style']['color']
         ..font = _getFont(opt['style'])
         ..translate(_yTitleCenter.x, _yTitleCenter.y)
-        ..rotate(-_PI_2)
+        ..rotate(-_pi_2)
         ..textAlign = 'center'
         ..textBaseline = 'middle'
         ..fillText(opt['text'], 0, 0)
@@ -1238,27 +1246,30 @@ class _TwoAxisChart extends Chart {
 
     // x-axis labels.
 
-    var opt = _options['xAxis']['labels'];
-    _axesContext.fillStyle = opt['style']['color'];
-    _axesContext.font = _getFont(opt['style']);
+    final opt = _options['xAxis']['labels'];
+    _axesContext
+      ..fillStyle = opt['style']['color']
+      ..font = _getFont(opt['style']);
     var x = _xLabelX(0);
     var y = _xAxisTop + _axisLabelMargin + opt['style']['fontSize'];
-    var scaledLabelHop = _xLabelStep * _xLabelHop;
+    final scaledLabelHop = _xLabelStep * _xLabelHop;
 
     if (_xLabelRotation == 0) {
-      _axesContext.textAlign = 'center';
-      _axesContext.textBaseline = 'alphabetic';
+      _axesContext
+        ..textAlign = 'center'
+        ..textBaseline = 'alphabetic';
       for (var i = 0; i < _xLabels.length; i += _xLabelStep) {
         _axesContext.fillText(_xLabels[i], x, y);
         x += scaledLabelHop;
       }
     } else {
-      _axesContext.textAlign = _xLabelRotation < 0 ? 'right' : 'left';
-      _axesContext.textBaseline = 'middle';
+      _axesContext
+        ..textAlign = _xLabelRotation < 0 ? 'right' : 'left'
+        ..textBaseline = 'middle';
       if (_xLabelRotation == 90) {
         x += _xLabelRotation.sign * (opt['style']['fontSize'] ~/ 8);
       }
-      var angle = deg2rad(_xLabelRotation);
+      final angle = deg2rad(_xLabelRotation);
       for (var i = 0; i < _xLabels.length; i += _xLabelStep) {
         _axesContext
           ..save()
@@ -1293,8 +1304,9 @@ class _TwoAxisChart extends Chart {
         ..beginPath();
       y = _xAxisTop - _yLabelHop;
       for (var i = _yLabels.length - 1; i >= 1; i--) {
-        _axesContext.moveTo(_yAxisLeft, y);
-        _axesContext.lineTo(_yAxisLeft + _xAxisLength, y);
+        _axesContext
+          ..moveTo(_yAxisLeft, y)
+          ..lineTo(_yAxisLeft + _xAxisLength, y);
         y -= _yLabelHop;
       }
       _axesContext.stroke();
@@ -1302,7 +1314,7 @@ class _TwoAxisChart extends Chart {
 
     // y grid lines or x-axis ticks - draw from left to right.
 
-    var lineWidth = _options['yAxis']['gridLineWidth'];
+    num lineWidth = _options['yAxis']['gridLineWidth'];
     x = _yAxisLeft;
     if (_xLabelStep > 1) {
       x = _xLabelX(0);
@@ -1318,8 +1330,9 @@ class _TwoAxisChart extends Chart {
       ..strokeStyle = _options['yAxis']['gridLineColor']
       ..beginPath();
     for (var i = 0; i < _xLabels.length; i += _xLabelStep) {
-      _axesContext.moveTo(x, y);
-      _axesContext.lineTo(x, _xAxisTop);
+      _axesContext
+        ..moveTo(x, y)
+        ..lineTo(x, _xAxisTop);
       x += scaledLabelHop;
     }
     _axesContext.stroke();
@@ -1350,16 +1363,16 @@ class _TwoAxisChart extends Chart {
   }
 
   @override
-  int _getEntityGroupIndex(num x, num y) {
-    var dx = x - _yAxisLeft;
+  int _getEntityGroupindex(num x, num y) {
+    final dx = x - _yAxisLeft;
     // If (x, y) is inside the rectangle defined by the two axes.
     if (y > _xAxisTop - _yAxisLength &&
         y < _xAxisTop &&
         dx > 0 &&
         dx < _xAxisLength) {
-      var index = (dx / _xLabelHop - _xLabelOffsetFactor).round();
+      final index = (dx / _xLabelHop - _xLabelOffsetFactor).round();
       // If there is at least one visible point in the current point group...
-      if (_averageYValues[index] != null) return index;
+      if (index >= 0 && _averageYValues[index] != null) return index;
     }
     return -1;
   }
@@ -1367,14 +1380,12 @@ class _TwoAxisChart extends Chart {
   @override
   Point _getTooltipPosition() {
     var x = _xLabelX(_focusedEntityIndex) + _tooltipOffset;
-    var y = _averageYValues[_focusedEntityIndex] - _tooltip.offsetHeight ~/ 2;
+    final y = _averageYValues[_focusedEntityIndex] - _tooltip.offsetHeight ~/ 2;
     if (x + _tooltip.offsetWidth > _width) {
       x -= _tooltip.offsetWidth + 2 * _tooltipOffset;
     }
     return new Point(x, y);
   }
-
-  _TwoAxisChart(Element container) : super(container);
 
   @override
   void update() {

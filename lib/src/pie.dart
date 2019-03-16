@@ -1,6 +1,6 @@
 part of modern_charts;
 
-final _pieChartDefaultOptions = {
+final _pieChartDefaultOptions = <String, dynamic>{
   // num - If between 0 and 1, displays a donut chart. The hole with have a
   // radius equal to this value times the radius of the chart.
   'pieHole': 0,
@@ -52,19 +52,20 @@ class _Pie extends _Entity {
   bool get isEmpty => startAngle == endAngle;
 
   bool containsPoint(Point p) {
-    p -= center;
-    var mag = p.magnitude;
+    final point = p - center;
+
+    final mag = point.magnitude;
     if (mag > outerRadius || mag < innerRadius) return false;
 
-    var angle = atan2(p.y, p.x);
-    var chartStartAngle = (chart as dynamic)._startAngle;
+    var angle = atan2(point.y, point.x);
+    final chartStartAngle = (chart as PieChart)._startAngle;
 
-    // Make sure [angle] is in range [chartStartAngle]..[chartStartAngle] + 2PI.
-    angle = (angle - chartStartAngle) % _2PI + chartStartAngle;
+    // Make sure [angle] is in range [chartStartAngle]..[chartStartAngle] + 2pi.
+    angle = (angle - chartStartAngle) % _2pi + chartStartAngle;
 
     // If counterclockwise, make sure [angle] is in range
-    // [start] - 2*PI..[start].
-    if (startAngle > endAngle) angle -= _2PI;
+    // [start] - 2*pi..[start].
+    if (startAngle > endAngle) angle -= _2pi;
 
     if (startAngle <= endAngle) {
       // Clockwise.
@@ -80,33 +81,36 @@ class _Pie extends _Entity {
     var a1 = lerp(oldStartAngle, startAngle, percent);
     var a2 = lerp(oldEndAngle, endAngle, percent);
     if (a1 > a2) {
-      var tmp = a1;
+      final tmp = a1;
       a1 = a2;
       a2 = tmp;
     }
     if (highlight) {
-      var highlightOuterRadius = _highlightOuterRadiusFactor * outerRadius;
-      ctx.fillStyle = highlightColor;
-      ctx.beginPath();
-      ctx.arc(center.x, center.y, highlightOuterRadius, a1, a2);
-      ctx.arc(center.x, center.y, innerRadius, a2, a1, true);
-      ctx.fill();
+      final highlightOuterRadius = _highlightOuterRadiusFactor * outerRadius;
+      ctx
+        ..fillStyle = highlightColor
+        ..beginPath()
+        ..arc(center.x, center.y, highlightOuterRadius, a1, a2)
+        ..arc(center.x, center.y, innerRadius, a2, a1, true)
+        ..fill();
     }
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(center.x, center.y, outerRadius, a1, a2);
-    ctx.arc(center.x, center.y, innerRadius, a2, a1, true);
-    ctx.fill();
-    ctx.stroke();
+    ctx
+      ..fillStyle = color
+      ..beginPath()
+      ..arc(center.x, center.y, outerRadius, a1, a2)
+      ..arc(center.x, center.y, innerRadius, a2, a1, true)
+      ..fill()
+      ..stroke();
 
-    if (formattedValue != null && chart is PieChart && a2 - a1 > PI / 36) {
-      var options = chart._options['series']['labels'];
+    if (formattedValue != null && chart is PieChart && a2 - a1 > pi / 36) {
+      final options = chart._options['series']['labels'];
       if (options['enabled']) {
-        var r = .25 * innerRadius + .75 * outerRadius;
-        var a = .5 * (a1 + a2);
-        var p = polarToCartesian(center, r, a);
-        ctx.fillStyle = options['style']['color'];
-        ctx.fillText(formattedValue, p.x, p.y);
+        final r = .25 * innerRadius + .75 * outerRadius;
+        final a = .5 * (a1 + a2);
+        final p = polarToCartesian(center, r, a);
+        ctx
+          ..fillStyle = options['style']['color']
+          ..fillText(formattedValue, p.x, p.y);
       }
     }
   }
@@ -130,20 +134,23 @@ class PieChart extends Chart {
   /// 1 means clockwise and -1 means counterclockwise.
   num _direction;
 
+  PieChart(Element container) : super(container) {
+    _defaultOptions = extendMap(globalOptions, _pieChartDefaultOptions);
+  }
   @override
   void _calculateDrawingSizes() {
     super._calculateDrawingSizes();
-    var rect = _seriesAndAxesBox;
-    var halfW = rect.width >> 1;
-    var halfH = rect.height >> 1;
+    final rect = _seriesAndAxesBox;
+    final halfW = rect.width >> 1;
+    final halfH = rect.height >> 1;
     _center = new Point(rect.left + halfW, rect.top + halfH);
     _outerRadius = min(halfW, halfH) / _highlightOuterRadiusFactor;
-    var pieHole = _options['pieHole'];
+    num pieHole = _options['pieHole'];
     if (pieHole > 1) pieHole = 0;
     if (pieHole < 0) pieHole = 0;
     _innerRadius = pieHole * _outerRadius;
 
-    var opt = _options['series'];
+    final opt = _options['series'];
     _entityValueFormatter =
         opt['labels']['formatter'] ?? _defaultValueFormatter;
     _direction = opt['counterclockwise'] ? _counterclockwise : _clockwise;
@@ -164,12 +171,13 @@ class PieChart extends Chart {
       ..strokeStyle = '#fff'
       ..textAlign = 'center'
       ..textBaseline = 'middle';
-    var pies = _seriesList.first.entities as List<_Pie>;
-    var labelOptions = _options['series']['labels'];
+    //var pies = _seriesList.first.entities as List<_pie>;
+    final labelOptions = _options['series']['labels'];
     _seriesContext.font = _getFont(labelOptions['style']);
-    for (var pie in pies) {
+    for (var e in _seriesList.first.entities) {
+      final pie = e as _Pie;
       if (pie.isEmpty && percent == 1.0) continue;
-      var highlight =
+      final highlight =
           pie.index == _focusedSeriesIndex || pie.index == _focusedEntityIndex;
       pie.draw(_seriesContext, percent, highlight);
     }
@@ -178,11 +186,12 @@ class PieChart extends Chart {
   }
 
   @override
-  int _getEntityGroupIndex(num x, num y) {
-    var p = new Point(x, y);
-    var entities = _seriesList.first.entities;
+  int _getEntityGroupindex(num x, num y) {
+    final p = new Point(x, y);
+    final entities = _seriesList.first.entities;
     for (var i = entities.length - 1; i >= 0; i--) {
-      var pie = entities[i] as _Pie;
+      // ignore: avoid_as
+      final pie = entities[i] as _Pie;
       if (pie.containsPoint(p)) return i;
     }
     return -1;
@@ -193,12 +202,12 @@ class PieChart extends Chart {
 
   @override
   Point _getTooltipPosition() {
-    var pie = _seriesList.first.entities[_focusedEntityIndex] as _Pie;
-    var angle = .5 * (pie.startAngle + pie.endAngle);
-    var radius = .5 * (_innerRadius + _outerRadius);
-    var point = polarToCartesian(_center, radius, angle);
-    var x = point.x - .5 * _tooltip.offsetWidth;
-    var y = point.y - _tooltip.offsetHeight;
+    final pie = _seriesList.first.entities[_focusedEntityIndex] as _Pie;
+    final angle = .5 * (pie.startAngle + pie.endAngle);
+    final radius = .5 * (_innerRadius + _outerRadius);
+    final point = polarToCartesian(_center, radius, angle);
+    final x = point.x - .5 * _tooltip.offsetWidth;
+    final y = point.y - _tooltip.offsetHeight;
     return new Point(x, y);
   }
 
@@ -206,13 +215,15 @@ class PieChart extends Chart {
   _Entity _createEntity(int seriesIndex, int entityIndex, value, String color,
       String highlightColor) {
     // Override the colors.
+    // ignore: parameter_assignments
     color = _getColor(entityIndex);
+    // ignore: parameter_assignments
     highlightColor = _changeColorAlpha(color, .5);
-    var name = _dataTable.rows[entityIndex][0];
+    final name = _dataTable.rows[entityIndex][0];
     var startAngle = _startAngle;
     if (entityIndex > 0 && _seriesList != null) {
-      var prevPie = _seriesList[0].entities[entityIndex - 1] as _Pie;
-      startAngle = prevPie.endAngle;
+      final prevpie = _seriesList[0].entities[entityIndex - 1] as _Pie;
+      startAngle = prevpie.endAngle;
     }
     return new _Pie()
       ..index = entityIndex
@@ -241,32 +252,35 @@ class PieChart extends Chart {
 
     var sum = 0.0;
     var startAngle = _startAngle;
-    var pieCount = _dataTable.rows.length;
-    var pies = _seriesList[0].entities as List<_Pie>;
+    final pieCount = _dataTable.rows.length;
+    //var pies = _seriesList[0].entities as List<_pie>;
 
     // Sum the values of all visible pies.
     for (var i = 0; i < pieCount; i++) {
       if (_seriesStates[i].index >= _VisibilityState.showing.index) {
-        sum += pies[i].value;
+        sum += (_seriesList[0].entities[i] as _Pie).value;
       }
     }
 
     for (var i = 0; i < pieCount; i++) {
-      var pie = pies[i];
-      var color = _getColor(i);
-      pie.index = i;
-      pie.name = _dataTable.rows[i][0];
-      pie.color = color;
-      pie.highlightColor = _getHighlightColor(color);
-      pie.center = _center;
+      final pie = _seriesList[0].entities[i] as _Pie;
+      final color = _getColor(i);
+      pie
+        ..index = i
+        ..name = _dataTable.rows[i][0]
+        ..color = color
+        ..highlightColor = _getHighlightColor(color)
+        ..center = _center;
 
       if (_seriesStates[i].index >= _VisibilityState.showing.index) {
-        pie.startAngle = startAngle;
-        pie.endAngle = startAngle + _direction * pie.value * _2PI / sum;
+        pie
+          ..startAngle = startAngle
+          ..endAngle = startAngle + _direction * pie.value * _2pi / sum;
         startAngle = pie.endAngle;
       } else {
-        pie.startAngle = startAngle;
-        pie.endAngle = startAngle;
+        pie
+          ..startAngle = startAngle
+          ..endAngle = startAngle;
       }
     }
   }
@@ -276,16 +290,12 @@ class PieChart extends Chart {
 
   @override
   void _updateTooltipContent() {
-    var pie = _seriesList[0].entities[_focusedEntityIndex] as _Pie;
+    final pie = _seriesList[0].entities[_focusedEntityIndex] as _Pie;
     _tooltip.style
       ..borderColor = pie.color
       ..padding = '4px 12px';
-    var label = _tooltipLabelFormatter(pie.name);
-    var value = _tooltipValueFormatter(pie.value);
+    final label = _tooltipLabelFormatter(pie.name);
+    final value = _tooltipValueFormatter(pie.value);
     _tooltip.innerHtml = '$label: <strong>$value</strong>';
-  }
-
-  PieChart(Element container) : super(container) {
-    _defaultOptions = extendMap(globalOptions, _pieChartDefaultOptions);
   }
 }

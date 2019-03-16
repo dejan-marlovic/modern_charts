@@ -6,8 +6,8 @@ import 'dart:collection';
 class DataCellChangeRecord {
   final int rowIndex;
   final int columnIndex;
-  final dynamic oldValue;
-  final dynamic newValue;
+  final Object oldValue;
+  final Object newValue;
   DataCellChangeRecord(
       this.rowIndex, this.columnIndex, this.oldValue, this.newValue);
   String toString() =>
@@ -34,13 +34,7 @@ class _TableEntity {
 
 class DataRow extends _TableEntity {
   /// The list that stores the actual data.
-  List _cells;
-
-  /// Converts a column index or name to an index.
-  int _toIndex(columnIndexOrName) {
-    if (columnIndexOrName is int) return columnIndexOrName;
-    return _table._columnIndexByName[columnIndexOrName];
-  }
+  List <Object>_cells;
 
   /// Creates a new [DataRow] from a list of values.
   ///
@@ -48,8 +42,8 @@ class DataRow extends _TableEntity {
   /// the remaining columns are filled with `null`.
   DataRow._internal(DataTable table, List values) {
     _table = table;
-    var n = _table._columns.length;
-    var m = values.length;
+    final n = _table._columns.length;
+    final m = values.length;
     var min = m;
     if (min > n) min = n;
     _cells = values.sublist(0, min);
@@ -58,13 +52,22 @@ class DataRow extends _TableEntity {
     }
   }
 
+  /// Converts a column index or name to an index.
+  int _toIndex(columnIndexOrName) {
+    if (columnIndexOrName is num) {
+      return columnIndexOrName;
+    } else {
+      return _table._columnIndexByName[columnIndexOrName];
+    }
+  }
+
   /// Returns the value of the column specified by [columnIndexOrName].
-  operator [](columnIndexOrName) => _cells[_toIndex(columnIndexOrName)];
+  Object operator [](Object columnIndexOrName) => _cells[_toIndex(columnIndexOrName)];
 
   /// Sets the value of the column specified by [columnIndexOrName].
-  operator []=(columnIndexOrName, value) {
-    var columnIndex = _toIndex(columnIndexOrName);
-    var oldValue = _cells[columnIndex];
+  void operator []=(Object columnIndexOrName, Object value) {
+    final columnIndex = _toIndex(columnIndexOrName);
+    final oldValue = _cells[columnIndex];
     _cells[columnIndex] = value;
     _table._onCellChanged(_index, columnIndex, oldValue, value);
   }
@@ -100,7 +103,7 @@ class DataCollectionIterator<E extends _TableEntity> implements Iterator<E> {
   E get current => _current;
 
   bool moveNext() {
-    int length = _iterable.length;
+    final length = _iterable.length;
     if (_length != length) {
       throw new ConcurrentModificationError(_iterable);
     }
@@ -118,25 +121,27 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   List<E> _base;
   DataTable _table;
 
+  DataCollectionBase(DataTable table)
+      : _base = <E>[],
+        _table = table;
+
   void _releaseItems(int start, int end) {
-    while (start < end) {
-      _base[start]._table = null;
-      start++;
+    var s = start;
+    while (s < end) {
+      _base[s]._table = null;
+      s++;
     }
   }
 
   void _updateItems(int start) {
-    var len = length;
-    while (start < len) {
-      _base[start]
+    var s = start;
+    final len = length;
+    while (s < len) {
+      _base[s]
         .._table = _table
-        .._index = start++;
+        .._index = s++;
     }
   }
-
-  DataCollectionBase(DataTable table)
-      : _base = <E>[],
-        _table = table;
 
   @override
   Iterator<E> get iterator => new DataCollectionIterator<E>(this);
@@ -154,7 +159,7 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   int get length => _base.length;
 
   @override
-  void set length(int value) {
+  set length(int value) {
     // TODO: implement.
     throw new UnimplementedError();
   }
@@ -163,20 +168,20 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   E operator [](int index) => _base[index];
 
   @override
-  operator []=(int index, E value) {
+  void operator []=(int index, E value) {
     // TODO: implement.
     throw new UnimplementedError();
   }
 
   void add(E value) {
-    var index = length;
+    final index = length;
     _base.add(value);
     _updateItems(index);
     _table._onRowsOrColumnsInserted(this, index, 1);
   }
 
   void addAll(Iterable<E> iterable) {
-    var index = length;
+    final index = length;
     _base.addAll(iterable);
     _updateItems(index);
     _table._onRowsOrColumnsInserted(this, index, iterable.length);
@@ -198,14 +203,14 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   }
 
   bool remove(Object element) {
-    var index = _base.indexOf(element);
+    final index = _base.indexOf(element);
     if (index == -1) return false;
     removeAt(index);
     return true;
   }
 
   void clear() {
-    var len = length;
+    final len = length;
     if (len == 0) return;
     _releaseItems(0, len);
     _base.clear();
@@ -213,16 +218,14 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
   }
 
   E removeAt(int index) {
-    var e = _base.removeAt(index);
-    e._table = null;
+    final e = _base.removeAt(index).._table = null;
     _updateItems(index);
     _table._onRowsOrColumnsRemoved(this, index, 1);
     return e;
   }
 
   E removeLast() {
-    var e = _base.removeLast();
-    e._table = null;
+    final e = _base.removeLast().._table = null;
     _table._onRowsOrColumnsRemoved(this, length, 1);
     return e;
   }
@@ -236,10 +239,10 @@ class DataCollectionBase<E extends _TableEntity> extends ListBase<E> {
 }
 
 class DataRowCollection extends DataCollectionBase<DataRow> {
+  DataRowCollection(DataTable table) : super(table);
+
   DataRow _toDataRow(value) =>
       value is DataRow ? value : new DataRow._internal(_table, value);
-
-  DataRowCollection(DataTable table) : super(table);
 
   /// Adds [value] to this collection.
   ///
@@ -292,57 +295,6 @@ class DataTable {
   StreamController<DataCollectionChangeRecord> _columnsChangeController;
   StreamController<DataCollectionChangeRecord> _rowsChangeController;
 
-  void _onCellChanged(int rowIndex, int columnIndex, oldValue, newValue) {
-    if (_cellChangeController != null) {
-      var record =
-          new DataCellChangeRecord(rowIndex, columnIndex, oldValue, newValue);
-      _cellChangeController.add(record);
-    }
-  }
-
-  void _onRowsOrColumnsInserted(
-      DataCollectionBase source, int index, int count) {
-    var record = new DataCollectionChangeRecord(index, count, 0);
-    if (source == _columns) {
-      _insertColumns(index, count);
-      _updateColumnIndexes(index);
-      _columnsChangeController?.add(record);
-    } else {
-      _rowsChangeController?.add(record);
-    }
-  }
-
-  void _onRowsOrColumnsRemoved(
-      DataCollectionBase source, int index, int count) {
-    var record = new DataCollectionChangeRecord(index, 0, count);
-    if (source == _columns) {
-      _removeColumns(index, count);
-      _updateColumnIndexes(index);
-      _columnsChangeController?.add(record);
-    } else {
-      _rowsChangeController?.add(record);
-    }
-  }
-
-  void _insertColumns(int start, int count) {
-    for (var row in _rows) {
-      row._cells.insertAll(start, new List(count));
-    }
-  }
-
-  void _removeColumns(int start, int count) {
-    for (var row in _rows) {
-      row._cells.removeRange(start, start + count);
-    }
-  }
-
-  void _updateColumnIndexes(int start) {
-    var end = _columns.length;
-    while (start < end) {
-      _columnIndexByName[_columns[start].name] = start++;
-    }
-  }
-
   /// Creates a [DataTable] with optional data [data].
   ///
   /// The first row in [data] contains the column names.
@@ -358,14 +310,14 @@ class DataTable {
 
     if (data == null) return;
 
-    var colCount = data.first.length;
-    var rowCount = data.length;
+    final colCount = data.first.length;
+    final rowCount = data.length;
 
     for (var colIndex = 0; colIndex < colCount; colIndex++) {
-      var name = data[0][colIndex];
+      final name = data[0][colIndex];
       var type = Object;
       for (var rowIndex = 1; rowIndex < rowCount; rowIndex++) {
-        var value = data[rowIndex][colIndex];
+        final value = data[rowIndex][colIndex];
         if (value == null) continue;
         if (value is String) type = String;
         if (value is num) type = num;
@@ -376,6 +328,58 @@ class DataTable {
     }
 
     _rows.addAll(data.getRange(1, rowCount));
+  }
+
+  void _onCellChanged(int rowIndex, int columnIndex, oldValue, newValue) {
+    if (_cellChangeController != null) {
+      final record =
+          new DataCellChangeRecord(rowIndex, columnIndex, oldValue, newValue);
+      _cellChangeController.add(record);
+    }
+  }
+
+  void _onRowsOrColumnsInserted(
+      DataCollectionBase source, int index, int count) {
+    final record = new DataCollectionChangeRecord(index, count, 0);
+    if (source == _columns) {
+      _insertColumns(index, count);
+      _updateColumnIndexes(index);
+      _columnsChangeController?.add(record);
+    } else {
+      _rowsChangeController?.add(record);
+    }
+  }
+
+  void _onRowsOrColumnsRemoved(
+      DataCollectionBase source, int index, int count) {
+    final record = new DataCollectionChangeRecord(index, 0, count);
+    if (source == _columns) {
+      _removeColumns(index, count);
+      _updateColumnIndexes(index);
+      _columnsChangeController?.add(record);
+    } else {
+      _rowsChangeController?.add(record);
+    }
+  }
+
+  void _insertColumns(int start, int count) {
+    for (var row in _rows) {
+      row._cells.insertAll(start, <int>[count]);
+    }
+  }
+
+  void _removeColumns(int start, int count) {
+    for (var row in _rows) {
+      row._cells.removeRange(start, start + count);
+    }
+  }
+
+  void _updateColumnIndexes(int start) {
+    final end = _columns.length;
+    var s = start;
+    while (s < end) {
+      _columnIndexByName[_columns[start].name] = s++;
+    }
   }
 
   /// The columns in this [DataTable].
@@ -423,8 +427,8 @@ class DataTable {
   }
 
   /// Gets the values of the column specified by [columnIndex].
-  List getColumnValues(int columnIndex) {
-    var list = [];
+  List<String> getColumnValues(int columnIndex) {
+    final list = <String>[];
     for (var row in _rows) {
       list.add(row[columnIndex]);
     }
